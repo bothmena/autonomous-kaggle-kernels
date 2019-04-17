@@ -153,11 +153,3 @@ class CodeSourceImporter:
                             output.write('\n# __cell__\n' if self.mark_cells else '\n')
                         else:
                             output.write(line.strip() + '\n')
-
-
-importer = CodeSourceImporter('main', '/opt/project/examples')
-importer.find_file_deps()
-print(importer.local_imports)
-print(importer.imports)
-# importer.get_ri_source_code()
-# importer.write_output()
