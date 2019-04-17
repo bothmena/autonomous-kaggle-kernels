@@ -1,8 +1,8 @@
 from unittest import TestCase
-from lib.command.commit import CodeSourceImporter
+from lib.command.source_code import CodeSourceImporter
 
 
-class TestCommit(TestCase):
+class TestSourceCodeImporter(TestCase):
 
     def test_get_pkg_modules(self):
         self.assertListEqual(
