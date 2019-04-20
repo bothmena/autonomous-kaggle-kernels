@@ -1,26 +1,43 @@
 import time
 import numpy as np
+from lib.services.container import ServiceContainer
+
+
+class Profiler:
+    def __init__(self):
+        self.start = None
+        self.end = None
+
+    def __enter__(self):
+        self.start = time.time()
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.end = time.time()
 
 
 class Cycle:
 
     def __init__(self):
-        self.networks = None
-        self.start = None
-        self.end = None
-        # todo, get number of steps from service container -> data loader (for shared data)
-        self.steps = None
+        self.container = ServiceContainer()
+        # todo, get number of steps from service container -> database
+        self.steps = 10000000
+        self.max_seconds = 100
+        self.run_time = None
+        self.profiling_data = None
 
-    def __enter__(self):
-        self.start = time.time()
-        for step in range(self.steps):
-            yield step
+    def cont(self, step: int, start_time: float):
+        if self.max_seconds is None:
+            return step < self.steps
+        else:
+            return ((time.time() - start_time) < self.max_seconds) and step < self.steps
 
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        self.end = time.time()
+    def loop(self):
+        with Profiler() as p:
+            step = 0
+            while self.cont(step, p.start):
+                step += 1
+                yield step
 
-    def get_run_time(self) -> float:
-        return self.end - self.start
-
-    def get_data(self) -> np.ndarray:
-        return np.array([self.start, self.end, self.get_run_time()])
+        self.run_time = p.end - p.start
+        self.profiling_data = np.array([p.start, p.end, self.run_time])

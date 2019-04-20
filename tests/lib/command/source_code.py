@@ -6,37 +6,37 @@ class TestSourceCodeImporter(TestCase):
 
     def test_get_pkg_modules(self):
         self.assertListEqual(
-            list(zip([None], ['aa'])),
+            list(zip([None], ['aa'], [None])),
             list(CodeSourceImporter.get_pkg_modules('import aa')),
             "Failed test 1"
         )
         self.assertEqual(
-            list(zip(['package'] * 3, ['aa', 'bb', 'cc'])),
+            list(zip(['package'] * 3, ['aa', 'bb', 'cc'], [None] * 3)),
             list(CodeSourceImporter.get_pkg_modules('from package import aa, bb, cc')),
             "Failed test 2"
         )
         self.assertEqual(
-            list(zip([None], ['aa'])),
+            list(zip([None], ['aa'], [None])),
             list(CodeSourceImporter.get_pkg_modules('   import aa  \n\n')),
             "Failed test 3"
         )
         self.assertEqual(
-            list(zip(['package'] * 3, ['aa', 'bb', 'cc'])),
+            list(zip(['package'] * 3, ['aa', 'bb', 'cc'], [None] * 3)),
             list(CodeSourceImporter.get_pkg_modules('   from package import aa, bb, cc   ')),
             "Failed test 4"
         )
         self.assertEqual(
-            list(zip(['package'] * 3, ['aa', 'bb', 'cc'])),
+            list(zip(['package'] * 3, ['aa', 'bb', 'cc'], [None] * 3)),
             list(CodeSourceImporter.get_pkg_modules('   from    package    import aa, bb, cc \n\n')),
             "Failed test 5"
         )
         self.assertEqual(
-            list(zip(['package'] * 3, ['aa', 'bb', 'cc'])),
+            list(zip(['package'] * 3, ['aa', 'bb', 'cc'], [None] * 3)),
             list(CodeSourceImporter.get_pkg_modules('   from    package    import aa, bb, cc \n\n')),
             "Failed test 6"
         )
         self.assertEqual(
-            list(zip([None] * 3, ['aa', 'bb', 'cc'])),
+            list(zip([None] * 3, ['aa', 'bb', 'cc'], [None] * 3)),
             list(CodeSourceImporter.get_pkg_modules('   import aa, bb, cc \n\n')),
             "Failed test 7"
         )
