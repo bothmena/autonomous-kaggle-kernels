@@ -148,8 +148,8 @@ class CodeSourceImporter:
             with open(os.path.join(self.project_dir, self.main_fn + '.py'), 'r') as f:
                 for line in f.readlines():
                     if not line.startswith(('from ', 'import ')):
-                        line = line.strip()
+                        line = line.rstrip()
                         if len(line) == 0:
                             output.write('\n# __cell__\n' if self.mark_cells else '\n')
                         else:
-                            output.write(line.strip() + '\n')
+                            output.write(line.rstrip() + '\n')
