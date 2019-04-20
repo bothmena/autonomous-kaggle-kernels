@@ -1,32 +1,24 @@
 from unittest import TestCase
 from core.cycle import Cycle
-from torch.nn import Module
-
-
-class MyCycle(Cycle):
-
-    def __init__(self, net: Module, basename: str):
-        super(MyCycle, self).__init__(net, basename)
-        assert self.net is not None
-
-    def loop(self):
-        for i in self.cycles:
-            print('epoch: ', i+1, '/', self.cycles)
-
-
-class Net(Module):
-
-    def forward(self, x):
-        return x
+import os
+import numpy as np
 
 
 class CycleTest(TestCase):
 
     def test_read_config(self):
-        cycle = MyCycle(Net(), 'net')
+        os.chdir(os.path.join(os.getcwd(), 'examples'))
+        cycle = Cycle()
 
-        w_path = '/home/bothmena/Projects/PyCharm/BrighterAI/autonomous-kaggle-kernels/examples/weights'
-        self.assertEqual(cycle.cycle, 2)
-        self.assertEqual(cycle.cycles, 5)
-        self.assertEqual(cycle.w_path, w_path)
+        self.assertIsNone(cycle.run_time)
 
+        for _ in cycle.loop():
+            pass
+
+        self.assertIsNotNone(cycle.run_time)
+        self.assertGreater(cycle.run_time, 0)
+        self.assertIsInstance(cycle.profiling_data, np.ndarray)
+
+# for loop:                                     0.6962621927261352  /  10000000 = 10M steps
+# while: check only steps:                      3.5596400260925294  /  10000000 = 10M steps
+# while: checks step + remaining time:          5.3298518657684330  /  10000000 = 10M steps
