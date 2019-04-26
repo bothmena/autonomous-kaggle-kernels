@@ -1,5 +1,6 @@
 from lib.services.idb import IDataBase
 from pymongo import MongoClient
+from lib.exception.database import ProjectExistsException
 
 
 class MongodbORM(IDataBase):
@@ -19,6 +20,10 @@ class MongodbORM(IDataBase):
         return self.projects.find_one({'path': path})
 
     def new_project(self, project: dict):
+        n = self.projects.count_documents({"$and": [{"name": project['name']}, {"path": project['path']}]})
+        if n > 0:
+            raise ProjectExistsException('A project must have unique path and/or name')
+
         project_id = self.projects.insert_one(project).inserted_id
         return project_id
 
