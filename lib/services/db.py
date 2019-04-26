@@ -1,6 +1,7 @@
 from lib.services.idb import IDataBase
 from pymongo import MongoClient
 from lib.exception.database import ProjectExistsException
+from datetime import datetime
 
 
 class MongodbORM(IDataBase):
@@ -24,6 +25,7 @@ class MongodbORM(IDataBase):
         if n > 0:
             raise ProjectExistsException('A project must have unique path and/or name')
 
+        project['date'] = datetime.utcnow()
         project_id = self.projects.insert_one(project).inserted_id
         return project_id
 
