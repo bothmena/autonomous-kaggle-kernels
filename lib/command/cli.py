@@ -1,7 +1,11 @@
-#!/usr/bin/python3
+#!/opt/conda/bin/python
 import argparse
 import sys
-sys.path.append('/home/bothmena/Projects/PyCharm/BrighterAI/autonomous-kaggle-kernels')
+import os
+if os.path.isdir('/home/bothmena/Projects/PyCharm/BrighterAI/autonomous-kaggle-kernels'):
+    sys.path.append('/home/bothmena/Projects/PyCharm/BrighterAI/autonomous-kaggle-kernels')
+elif os.path.isdir('/workspace/BrighterAI/autonomous-kaggle-kernels'):
+    sys.path.append('/workspace/BrighterAI/autonomous-kaggle-kernels')
 from lib.command import project, experience, search_space
 # from . import project, experience, search_space
 
