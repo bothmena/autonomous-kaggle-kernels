@@ -1,8 +1,8 @@
 import os
-
 from git import Repo
-
 from lib.services.db import MongodbORM
+from lib.exception.database import ProjectExistsException
+
 
 orm = MongodbORM()
 
@@ -18,15 +18,20 @@ def init_project(name: str, path: str, repository: str, framework: str, cpu: boo
         repository = list(repo.remotes[0].urls)[0]
 
     project = {
-        'name': name,
-        'path': path,
+        'name'      : name,
+        'path'      : path,
         'repository': repository,
-        'framework': framework,
-        'cpu': cpu,
-        'internet': internet,
+        'framework' : framework,
+        'cpu'       : cpu,
+        'internet'  : internet,
     }
 
-    orm.new_project(project)
+    try:
+        orm.new_project(project)
+    except ProjectExistsException:
+        print(
+            'Could not create a new project, a project already exists with the same name and/or path. Please make sure you use a unique name for your project to be able to '
+            'identify them on kaggle')
     # todo create the config file if necessary.
 
 
@@ -54,6 +59,6 @@ def list_project(*args, **kwargs):
     for project in orm.projects.find():
         i += 1
         print(' | {:3d} | {:30s} | {:12s} | {:10s} | {:10s} | {:10s} |'.format(i, project['name'], project['framework'], yor(len(project['repository']) > 0),
-                                                                      'CPU' if project['cpu'] else 'GPU', yor(project['internet'])))
+                                                                               'CPU' if project['cpu'] else 'GPU', yor(project['internet'])))
         print(' ' + '-' * 94)
     print('')
