@@ -88,6 +88,18 @@ def parse_project(subparsers):
     parser_project_update._action_groups.append(parser_project_update_opt)
     parser_project_update.set_defaults(func=project.update_project)
 
+    # project list
+    parser_project_list = subparsers_project.add_parser('list', formatter_class=argparse.RawTextHelpFormatter, help=Help.project_list)
+    parser_project_list_opt = parser_project_list._action_groups.pop()
+
+    for kwargs in Help.project_list_args:
+        args = kwargs['args']
+        del kwargs['args']
+        parser_project_list_opt.add_argument(*args, **kwargs)
+
+    parser_project_list._action_groups.append(parser_project_list_opt)
+    parser_project_list.set_defaults(func=project.list_project)
+
 
 def parse_experience(subparsers):
     parser_exp = subparsers.add_parser('experience', formatter_class=argparse.RawTextHelpFormatter, help=Help.exp, aliases=['e'])
@@ -201,7 +213,7 @@ def parse_search_space(subparsers):
 
 class Help:
     akk_choices = ['project', 'p', 'experience', 'e', 'search-space', 'ss']
-    project_choices = ['init', 'status', 'update']
+    project_choices = ['init', 'status', 'update', 'list']
     exp_choices = ['init', 'status', 'start', 'stop', 'list']
     ss_choices = ['expand', 'list', 'run']
 
@@ -209,6 +221,7 @@ class Help:
     project_init = 'Initiate a new project'
     project_status = 'Check the status of the project'
     project_update = 'Update project info and settings'
+    project_list = 'List all the projects'
 
     exp = 'Manage your project experiences'
     exp_init = 'Initiate a new experience'
@@ -280,6 +293,7 @@ class Help:
             'help': 'Name of the new project, it should be unique, default: name of the directory',
         },
     ]
+    project_list_args = []
 
     exp_init_args = [
         {

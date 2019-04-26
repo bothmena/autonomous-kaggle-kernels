@@ -1,5 +1,7 @@
 import os
+
 from git import Repo
+
 from lib.services.db import MongodbORM
 
 orm = MongodbORM()
@@ -38,3 +40,20 @@ def update_project(*args, **kwargs):
     print('-' * 50)
     print('project update command / Not yet implemented')
     print('-' * 50)
+
+
+def list_project(*args, **kwargs):
+    def yor(cond: bool):
+        return 'Yes' if cond else 'No'
+
+    print('')
+    print(' ' + '-' * 94)
+    print(' | {:3s} | {:30s} | {:12s} | {:10s} | {:10s} | {:10s} |'.format('#', 'Project name', 'Framework', 'Repository', 'GPU/CPU', 'Internet'))
+    print(' ' + '-' * 94)
+    i = 0
+    for project in orm.projects.find():
+        i += 1
+        print(' | {:3d} | {:30s} | {:12s} | {:10s} | {:10s} | {:10s} |'.format(i, project['name'], project['framework'], yor(len(project['repository']) > 0),
+                                                                      'CPU' if project['cpu'] else 'GPU', yor(project['internet'])))
+        print(' ' + '-' * 94)
+    print('')
