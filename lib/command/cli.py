@@ -237,8 +237,21 @@ class Help:
             'default': '.',
         },
         {
+            'args': ['-r', '--repository'],
+            'dest': 'repository',
+            'required': False,
+            'help': 'Url of the repository where the project is stored',
+        },
+        {
+            'args': ['-k', '--framework'],
+            'dest': 'framework',
+            'default': 'pytorch',
+            'choices': ['pytorch', 'tensorflow', 'keras'],
+            'help': 'Deep Learning framework in use, choose from pytorch/tensorflow/keras, default pytorch',
+        },
+        {
             'args': ['--cpu'],
-            'dest': 'name',
+            'dest': 'cpu',
             'required': False,
             'help': 'Use cpu for training instead of GPU, default: False',
             'action': 'store_true',
