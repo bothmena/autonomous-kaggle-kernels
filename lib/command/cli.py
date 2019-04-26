@@ -1,7 +1,6 @@
 #!/usr/bin/python3
 import argparse
 import sys
-print(sys.path)
 sys.path.append('/home/bothmena/Projects/PyCharm/BrighterAI/autonomous-kaggle-kernels')
 from lib.command import project, experience, search_space
 # from . import project, experience, search_space
