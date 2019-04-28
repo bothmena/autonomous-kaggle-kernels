@@ -31,6 +31,23 @@ def _get_experiences(filename: str):
         return None
 
 
+def _fill_experience(experience: dict):
+    """
+    if the optional keys: ['lr_decay', 'lr_cycle', 'opt_args', 'loss_args'] are not defined in the experience
+    we should set them at their default values, respectfully: [None, None, {}, {}]
+    :param experience: the experience that will be saved in the DB
+    :return:
+    """
+    keys = ['lr_decay', 'lr_cycle', 'opt_args', 'loss_args']
+    defaults = [None, None, {}, {}]
+
+    for i in range(4):
+        if keys[i] not in experience.keys():
+            experience[keys[i]] = defaults[i]
+
+    return experience
+
+
 # def new_project_handler(group=None, category=None, sort_by=None, page=1, search=None, csv_display=False):
 def init_exp(filename: str):
     path = os.getcwd()
@@ -44,6 +61,7 @@ def init_exp(filename: str):
         successes = 0
         failures = 0
         for experience in experiences:
+            experience = _fill_experience(experience)
             experience['project'] = str(project['_id'])
             experience['search_space'] = None
             try:
