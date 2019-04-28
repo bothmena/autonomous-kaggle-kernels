@@ -1,5 +1,9 @@
 import os
+from git import Repo
+from git.exc import InvalidGitRepositoryError
 from lib.services.db import MongodbORM
+from lib.command.source_code import CodeSourceImporter
+from lib.exception.git import NoRepoException, UncommitedChangesException
 from lib.exception.database import ExperienceExistsException
 
 
@@ -49,14 +53,26 @@ def _fill_experience(experience: dict):
     return experience
 
 
+def _project_not_found():
+    print('This directory is not a registered AKK project, please make sure you are issuing the command from the right directory.')
+    print('If you did not initialize the project all you have to do is to run:')
+    print('$ akk project init [-h: for more information]')
+
+
+def _assemble_code(project):
+    # todo: add new attribute to project and new command argument to project init: entrypoint: main .py file, default: main.py
+    project['entrypoint'] = 'main.py'
+    importer = CodeSourceImporter(project['entrypoint'], project['path'])
+    importer.find_file_deps()
+    importer.write_output()
+
+
 # def new_project_handler(group=None, category=None, sort_by=None, page=1, search=None, csv_display=False):
 def init_exp(filename: str):
     path = os.getcwd()
     project = orm.get_project(path)
     if project is None:
-        print('This directory is not a registered AKK project, please make sure you are issuing the command from the right directory.')
-        print('If you did not initialize the project all you have to do is to run:')
-        print('$ akk project init [-h: for more information]')
+        _project_not_found()
     else:
         experiences = _get_experiences(filename)
         successes = 0
@@ -82,10 +98,46 @@ def status_exp(*args, **kwargs):
     print('-' * 50)
 
 
-def start_exp(*args, **kwargs):
-    print('-' * 50)
-    print('experience start command / Not yet implemented')
-    print('-' * 50)
+def start_exp(exp_id, *args, **kwargs):
+    # get project
+    path = os.getcwd()
+    project = orm.get_project(path)
+    if project is None:
+        _project_not_found()
+        return
+
+    # get experience with id and project id.
+    experience = orm.get_experience(exp_id, str(project['_id']))
+    if experience is None:
+        print('This project has no experience with id:', exp_id)
+        return
+
+    try:
+        # check project last commit, else warning
+        repo = Repo(path)
+        if repo.is_dirty():
+            raise UncommitedChangesException()
+        last_commit = None
+        for commit in repo.iter_commits():
+            last_commit = commit.name_rev[:10]
+            break
+        if last_commit is None:
+            raise UncommitedChangesException()
+
+        # check if the directory "project_path/.akk/_last_commit_id_" exists, if not create it.
+        if not os.path.isdir(os.path.join(path, '.akk', last_commit)):
+            os.mkdir(os.path.join(path, '.akk', last_commit), 0o755)
+        # check if assembled file exists in: project_path/.akk/_last_commit_id_/output.py, if not assemble code.
+        if not os.path.isfile(os.path.join(path, '.akk', last_commit, 'output.py')):
+            _assemble_code(project)
+    except InvalidGitRepositoryError:
+        raise NoRepoException()
+
+    # todo: handle separating experience import from other imports.
+
+    # todo: run profiling commit to measure the duration of each cycle.
+
+    # todo: split into commits and run sequentially.
 
 
 def stop_exp(*args, **kwargs):
@@ -98,9 +150,7 @@ def list_exp(*args, **kwargs):
     path = os.getcwd()
     project = orm.get_project(path)
     if project is None:
-        print('This directory is not a registered AKK project, please make sure you are issuing the command from the right directory.')
-        print('If you did not initialize the project all you have to do is to run:')
-        print('$ akk project init [-h: for more information]')
+        _project_not_found()
     else:
         def lr_state(lr, lr_decay, lr_cycle):
             if lr_decay is not None:
@@ -124,24 +174,3 @@ def list_exp(*args, **kwargs):
                                                                                                       exp['optimizer'], exp['loss'], exp['status']))
             print(' ' + '-' * 125)
         print('')
-
-###########################################################
-#  Code to use to assemble project code in a single file  #
-###########################################################
-
-# from lib.command.source_code import CodeSourceImporter
-#
-#
-# class Push:
-#     def __init__(self, project_dir, main_fn: str = 'main'):
-#         self.project_dir = project_dir
-#         self.main_fn = main_fn
-#
-#     def push_code(self):
-#         importer = CodeSourceImporter(self.main_fn, self.project_dir)
-#         importer.find_file_deps()
-#         importer.write_output()
-#
-#
-# pusher = Push('/opt/project/examples')
-# pusher.push_code()

@@ -1,6 +1,7 @@
 import os
 import importlib
 import inspect
+from lib.exception.implementation import NoExperienceException, ManyExperiencesException
 
 
 class CodeSourceImporter:
@@ -119,6 +120,7 @@ class CodeSourceImporter:
         """
         :return: the source code of the relative imports
         """
+        experiences = 0
         for module in sorted(self.local_imports, key=self.local_imports.get, reverse=True):
             parts = module.split('.')
             pkg = os.path.basename(self.project_dir)
@@ -127,7 +129,23 @@ class CodeSourceImporter:
             imp = importlib.import_module(imp_st)
             obj = eval('imp.' + parts[-1])
 
+            if isinstance(obj, dict):
+                is_experience = True
+                for key in ['batch_size', 'epochs', 'lr', 'optimizer', 'loss']:
+                    if key not in obj.keys():
+                        print('ERROR! not saving experience #{}, missing a required field: {}'.format(i, key))
+                        is_experience = False
+                        break
+                if is_experience:
+                    experiences += 1
+                    continue
+
             yield inspect.getsource(obj).strip()
+
+        if experiences == 0:
+            raise NoExperienceException()
+        elif experiences > 1:
+            raise ManyExperiencesException()
 
     def write_output(self):
         with open(os.path.join(self.project_dir, self.output_fn), 'w') as output:
