@@ -21,12 +21,14 @@ class MongodbORM(IDataBase):
         return self.projects.find_one({'path': path})
 
     def new_project(self, project: dict):
-        n = self.projects.count_documents({"$and": [{"name": project['name']}, {"path": project['path']}]})
-        if n > 0:
+        prj_db = self.projects.find_one({"$and": [{"name": project['name']}, {"path": project['path']}]})
+
+        if prj_db is not None:
             raise ProjectExistsException('A project must have unique path and/or name')
 
         project['date'] = datetime.utcnow()
         project_id = self.projects.insert_one(project).inserted_id
+
         return project_id
 
     def new_experience(self, project_id):
