@@ -1,9 +1,9 @@
 experience_1 = {
     'batch_size': 64,
     'epochs': 40,
-    'lr': 'cross_entropy',
-    'lr_decay': 'cross_entropy',
-    'lr_cycle': 'cross_entropy',
+    'lr': 0.001,
+    'lr_decay': 0.5,
+    'lr_cycle': 40,
     'optimizer': 'adam',
     'opt_args': {},
     'loss': 'cross_entropy',
@@ -13,7 +13,7 @@ experience_1 = {
 experience_2 = {
     'batch_size': 64,
     'epochs': 40,
-    'lr': 'cross_entropy',
+    'lr': 0.0005,
     'optimizer': 'adam',
     'loss': 'cross_entropy',
 }
@@ -58,9 +58,9 @@ experience_6 = {
 experience_7 = {
     'batch_size': 64,
     'epochs': 40,
-    'lr': 'cross_entropy',
-    'lr_decay': 'cross_entropy',
-    'lr_cycle': 'cross_entropy',
+    'lr': 0.005,
+    'lr_decay': 0.2,
+    'lr_cycle': None,
     'optimizer': 'adam',
     'opt_args': {},
     'loss': 'cross_entropy',

@@ -13,13 +13,14 @@ def _get_experiences(filename: str):
             code = compile(f.read(), filename, 'exec')
             local_vars = {}
             exec(code, {}, local_vars)
+            i = 0
             for _, var_val in local_vars.items():
                 if isinstance(var_val, dict):
+                    i += 1
                     valid_exp = True
                     for key in ['batch_size', 'epochs', 'lr', 'optimizer', 'loss']:
-                        # print('checking if', key, 'is in', var_val.keys())
                         if key not in var_val.keys():
-                            print(key, 'not in var_val keys')
+                            print('ERROR! not saving experience #{}, missing a required field: {}'.format(i, key))
                             valid_exp = False
                             break
                     if valid_exp:
@@ -64,6 +65,7 @@ def init_exp(filename: str):
             experience = _fill_experience(experience)
             experience['project'] = str(project['_id'])
             experience['search_space'] = None
+            experience['status'] = 'Not started'  # queued / running / stopped / completed
             try:
                 orm.new_experience(experience)
                 successes += 1
@@ -93,9 +95,35 @@ def stop_exp(*args, **kwargs):
 
 
 def list_exp(*args, **kwargs):
-    print('-' * 50)
-    print('experience list command / Not yet implemented')
-    print('-' * 50)
+    path = os.getcwd()
+    project = orm.get_project(path)
+    if project is None:
+        print('This directory is not a registered AKK project, please make sure you are issuing the command from the right directory.')
+        print('If you did not initialize the project all you have to do is to run:')
+        print('$ akk project init [-h: for more information]')
+    else:
+        def lr_state(lr, lr_decay, lr_cycle):
+            if lr_decay is not None:
+                if lr_cycle is not None:
+                    return 'D+R: {:.2f} / {:d}'.format(lr_decay, lr_cycle)
+                else:
+                    return 'Decay: {:.2f}'.format(lr_decay)
+            else:
+                return 'Const: {:.5f}'.format(lr)
+
+        print('')
+        print(' ' + '-' * 125)
+        print(' | {:3s}  | {:24s} | {:10s} | {:10s} | {:14s} | {:10s} | {:16s} | {:12s} |'.format('#', 'Id', 'Batch Size', 'Epochs', 'Learning Rate', 'Optimizer', 'Loss Fct'
+                                                                                                  , 'Status'))
+        print(' ' + '-' * 125)
+        i = 0
+        for exp in orm.experiences.find({'project': str(project['_id'])}):
+            i += 1
+            print(' | {:3d}  | {:24s} | {:10d} | {:10d} | {:14s} | {:10s} | {:16s} | {:12s} |'.format(i, str(exp['_id']), exp['batch_size'], exp['epochs'],
+                                                                                                      lr_state(exp['lr'], exp['lr_decay'], exp['lr_cycle']),
+                                                                                                      exp['optimizer'], exp['loss'], exp['status']))
+            print(' ' + '-' * 125)
+        print('')
 
 ###########################################################
 #  Code to use to assemble project code in a single file  #
