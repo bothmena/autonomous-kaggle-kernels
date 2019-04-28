@@ -1,5 +1,6 @@
 import os
 from git import Repo
+from git.exc import InvalidGitRepositoryError
 from lib.services.db import MongodbORM
 from lib.exception.database import ProjectExistsException
 
@@ -14,8 +15,15 @@ def init_project(name: str, path: str, repository: str, framework: str, cpu: boo
     if name is None:
         name = os.path.basename(path)
     if repository is None:
-        repo = Repo(path)
-        repository = list(repo.remotes[0].urls)[0]
+        try:
+            repo = Repo(path)
+            remotes = list(repo.remotes)
+            if len(remotes) > 0:
+                urls = list(remotes[0].urls)
+                if len(urls) > 0:
+                    repository = urls[0]
+        except InvalidGitRepositoryError:
+            pass
 
     project = {
         'name'      : name,
@@ -58,7 +66,7 @@ def list_project(*args, **kwargs):
     i = 0
     for project in orm.projects.find():
         i += 1
-        print(' | {:3d} | {:30s} | {:12s} | {:10s} | {:10s} | {:10s} |'.format(i, project['name'], project['framework'], yor(len(project['repository']) > 0),
+        print(' | {:3d} | {:30s} | {:12s} | {:10s} | {:10s} | {:10s} |'.format(i, project['name'], project['framework'], yor(project['repository'] is not None),
                                                                                'CPU' if project['cpu'] else 'GPU', yor(project['internet'])))
         print(' ' + '-' * 94)
     print('')
