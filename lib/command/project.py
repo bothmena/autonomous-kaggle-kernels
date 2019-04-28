@@ -3,6 +3,7 @@ from git import Repo
 from git.exc import InvalidGitRepositoryError
 from lib.services.db import MongodbORM
 from lib.exception.database import ProjectExistsException
+from lib.exception.git import NoRepoException
 
 
 orm = MongodbORM()
@@ -23,7 +24,7 @@ def init_project(name: str, path: str, repository: str, framework: str, cpu: boo
                 if len(urls) > 0:
                     repository = urls[0]
         except InvalidGitRepositoryError:
-            pass
+            raise NoRepoException()
 
     project = {
         'name'      : name,
