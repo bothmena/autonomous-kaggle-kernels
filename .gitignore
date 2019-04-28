@@ -5,3 +5,9 @@ results
 examples
 core/old_cycle.py
 kaggle-api
+.pytest_cache/
+.akk/
+
+lib/
+core/
+tests/
