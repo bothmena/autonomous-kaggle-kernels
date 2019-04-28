@@ -4,12 +4,12 @@ from torch import optim
 
 
 class Experience(metaclass=ABCMeta):
-    def __init__(self, batch_size: int, epochs: int, optimizer: str, criterion: str, lr: float = None, lr_decay: float = None, lr_cycle: int = None, **kwargs):
+    def __init__(self, batch_size: int, epochs: int, optimizer: str, loss: str, lr: float = None, lr_decay: float = None, lr_cycle: int = None, **kwargs):
         """
         :param batch_size: mini-batch size
         :param epochs: number of training epochs
         :param optimizer: name of the optimizer
-        :param criterion: name of the loss function, possible values: cross_entropy
+        :param loss: name of the loss function, possible values: cross_entropy
         :param lr: initial value of the learning rate
         :param lr_decay: decay value that will affect the slope of the LR decay
         :param lr_cycle: after how many epochs learning rate should restart to the initial value
@@ -22,7 +22,7 @@ class Experience(metaclass=ABCMeta):
         self.batch_size = batch_size
         self.epochs = epochs
         self.optimizer = optimizer
-        self.criterion = criterion
+        self.loss = loss
         self.lr = lr
         self.lr_decay = lr_decay
         self.lr_cycle = lr_cycle
@@ -76,9 +76,9 @@ class PyTorchExperience(Experience):
             raise NotImplementedError('This optimizer is not yet implemented')
 
     def get_loss(self):
-        if self.criterion == 'mse':
+        if self.loss == 'mse':
             return nn.MSELoss(**self.loss_args)
-        elif self.criterion == 'cross_entropy':
+        elif self.loss == 'cross_entropy':
             return nn.CrossEntropyLoss(**self.loss_args)
         else:
             raise NotImplementedError('This loss function is not yet implemented')
