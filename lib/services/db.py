@@ -1,6 +1,6 @@
 from lib.services.idb import IDataBase
 from pymongo import MongoClient
-from lib.exception.database import ProjectExistsException
+from lib.exception.database import ProjectExistsException, ExperienceExistsException
 from datetime import datetime
 
 
@@ -31,8 +31,24 @@ class MongodbORM(IDataBase):
 
         return project_id
 
-    def new_experience(self, project_id):
-        pass
+    def new_experience(self, experience: dict):
+        experience_cp = experience.copy()
+        del experience_cp['search_space']
+        exp_db = self.experiences.find_one(experience_cp)
+        if exp_db is not None:
+            raise ExperienceExistsException('same experience for the same project already exists')
 
-    def get_experience(self, project_id):
-        pass
+        experience['date'] = datetime.utcnow()
+        experience_id = self.experiences.insert_one(experience).inserted_id
+
+        return experience_id
+
+    def get_experience(self, exp_id: str):
+        """
+        :param exp_id: the first 10 characters of the experience ObjectId
+        :return: experience or None
+        :rtype: dict
+        """
+        cond = "this._id.str.match(/^{}*/)".format(exp_id)
+        exp = self.experiences.find_one({"$where": cond})
+        return exp
