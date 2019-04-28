@@ -1,8 +1,59 @@
+import os
+from lib.services.db import MongodbORM
+from lib.exception.database import ExperienceExistsException
+
+
+orm = MongodbORM()
+
+
+def _get_experiences(filename: str):
+    experiences = []
+    try:
+        with open(filename) as f:
+            code = compile(f.read(), filename, 'exec')
+            local_vars = {}
+            exec(code, {}, local_vars)
+            for _, var_val in local_vars.items():
+                if isinstance(var_val, dict):
+                    valid_exp = True
+                    for key in ['batch_size', 'epochs', 'lr', 'optimizer', 'loss']:
+                        # print('checking if', key, 'is in', var_val.keys())
+                        if key not in var_val.keys():
+                            print(key, 'not in var_val keys')
+                            valid_exp = False
+                            break
+                    if valid_exp:
+                        experiences.append(var_val)
+
+        return experiences
+    except FileNotFoundError:
+        print('File: "{}" not found. Please make sure that filename parameter is correct'.format(filename))
+        return None
+
+
 # def new_project_handler(group=None, category=None, sort_by=None, page=1, search=None, csv_display=False):
-def init_exp(*args, **kwargs):
-    print('-' * 50)
-    print('experience init command / Not yet implemented')
-    print('-' * 50)
+def init_exp(filename: str):
+    path = os.getcwd()
+    project = orm.get_project(path)
+    if project is None:
+        print('This directory is not a registered AKK project, please make sure you are issuing the command from the right directory.')
+        print('If you did not initialize the project all you have to do is to run:')
+        print('$ akk project init [-h: for more information]')
+    else:
+        experiences = _get_experiences(filename)
+        successes = 0
+        failures = 0
+        for experience in experiences:
+            experience['project'] = str(project['_id'])
+            experience['search_space'] = None
+            try:
+                orm.new_experience(experience)
+                successes += 1
+            except ExperienceExistsException:
+                failures += 1
+
+        print('Experiences saved successfully:', successes)
+        print('Experiences that already exist:', failures)
 
 
 def status_exp(*args, **kwargs):
@@ -27,7 +78,6 @@ def list_exp(*args, **kwargs):
     print('-' * 50)
     print('experience list command / Not yet implemented')
     print('-' * 50)
-
 
 ###########################################################
 #  Code to use to assemble project code in a single file  #

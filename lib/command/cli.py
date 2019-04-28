@@ -297,10 +297,10 @@ class Help:
 
     exp_init_args = [
         {
-            'args': ['-n', '--name'],
-            'dest': 'name',
-            'required': False,
-            'help': 'Name of the new project, it should be unique, default: name of the directory',
+            'args': ['-f', '--filename'],
+            'dest': 'filename',
+            'required': True,
+            'help': 'Path to the file where the experience dictionary is defined.',
         },
     ]
     exp_status_args = [
