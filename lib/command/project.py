@@ -42,6 +42,7 @@ def init_project(name: str, path: str, repository: str, framework: str, cpu: boo
             'Could not create a new project, a project already exists with the same name and/or path. Please make sure you use a unique name for your project to be able to '
             'identify them on kaggle')
     # todo create the config file if necessary.
+    os.mkdir(os.path.join(path, '.akk'), 0o755)
 
 
 def status_project(*args, **kwargs):
