@@ -2,6 +2,7 @@ from lib.services.idb import IDataBase
 from pymongo import MongoClient
 from lib.exception.database import ProjectExistsException, ExperienceExistsException
 from datetime import datetime
+from bson import ObjectId
 
 
 class MongodbORM(IDataBase):
@@ -43,12 +44,17 @@ class MongodbORM(IDataBase):
 
         return experience_id
 
-    def get_experience(self, exp_id: str):
+    def get_experience(self, exp_id: str, project_id: str = None):
         """
         :param exp_id: the first 10 characters of the experience ObjectId
+        :param project_id: experience's project id
         :return: experience or None
         :rtype: dict
         """
-        cond = "this._id.str.match(/^{}*/)".format(exp_id)
-        exp = self.experiences.find_one({"$where": cond})
+        # cond = "this._id.str.match(/^{}*/)".format(exp_id)
+        if project_id is None:
+            criteria = {"_id": ObjectId(exp_id)}
+        else:
+            criteria = {"_id": ObjectId(exp_id), 'project': project_id}
+        exp = self.experiences.find_one(criteria)
         return exp
