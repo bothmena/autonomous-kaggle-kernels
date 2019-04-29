@@ -1,6 +1,6 @@
-from lib.services.idb import IDataBase
+from src.lib.services import IDataBase
 from pymongo import MongoClient
-from lib.exception.database import ProjectExistsException, ExperienceExistsException
+from src.lib import ProjectExistsException, ExperienceExistsException
 from datetime import datetime
 from bson import ObjectId
 

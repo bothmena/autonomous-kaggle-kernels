@@ -6,7 +6,10 @@ if os.path.isdir('/home/bothmena/Projects/PyCharm/BrighterAI/autonomous-kaggle-k
     sys.path.append('/home/bothmena/Projects/PyCharm/BrighterAI/autonomous-kaggle-kernels')
 elif os.path.isdir('/workspace/BrighterAI/autonomous-kaggle-kernels'):
     sys.path.append('/workspace/BrighterAI/autonomous-kaggle-kernels')
-from lib.command import project, experience, search_space
+from src.cli import search_space
+from src.cli import experience, project
+
+
 # from . import project, experience, search_space
 
 
@@ -15,7 +18,7 @@ def main():
 
     parser.add_argument('-v', '--version', action='version', version='Autonomous Kaggle Kernels CLI - %(prog)s - v1.0')
 
-    subparsers = parser.add_subparsers(title='commands', dest='command')
+    subparsers = parser.add_subparsers(title='commands', dest='cli')
     subparsers.required = True
     subparsers.choices = Help.akk_choices
 
@@ -27,7 +30,7 @@ def main():
     command_args = {}
     command_args.update(vars(args))
     del command_args['func']
-    del command_args['command']
+    del command_args['cli']
     error = False
     try:
         out = args.func(**command_args)
@@ -48,7 +51,7 @@ def main():
 
 def parse_project(subparsers):
     parser_project = subparsers.add_parser('project', formatter_class=argparse.RawTextHelpFormatter, help=Help.project, aliases=['p'])
-    subparsers_project = parser_project.add_subparsers(title='commands', dest='command')
+    subparsers_project = parser_project.add_subparsers(title='commands', dest='cli')
     subparsers_project.required = True
     subparsers_project.choices = Help.project_choices
 
@@ -103,7 +106,7 @@ def parse_project(subparsers):
 
 def parse_experience(subparsers):
     parser_exp = subparsers.add_parser('experience', formatter_class=argparse.RawTextHelpFormatter, help=Help.exp, aliases=['e'])
-    subparsers_exp = parser_exp.add_subparsers(title='commands', dest='command')
+    subparsers_exp = parser_exp.add_subparsers(title='commands', dest='cli')
     subparsers_exp.required = True
     subparsers_exp.choices = Help.exp_choices
 
@@ -170,7 +173,7 @@ def parse_experience(subparsers):
 
 def parse_search_space(subparsers):
     parser_ss = subparsers.add_parser('search-space', formatter_class=argparse.RawTextHelpFormatter, help=Help.ss, aliases=['ss'])
-    subparsers_ss = parser_ss.add_subparsers(title='commands', dest='command')
+    subparsers_ss = parser_ss.add_subparsers(title='commands', dest='cli')
     subparsers_ss.required = True
     subparsers_ss.choices = Help.ss_choices
 

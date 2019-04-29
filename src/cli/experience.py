@@ -2,10 +2,10 @@ import os
 import shutil
 from git import Repo
 from git.exc import InvalidGitRepositoryError
-from lib.services.db import MongodbORM
-from lib.command.source_code import CodeSourceImporter
-from lib.exception.git import NoRepoException, UncommitedChangesException
-from lib.exception.database import ExperienceExistsException
+from src.lib.services.db import MongodbORM
+from src.lib import CodeSourceImporter
+from src.lib import NoRepoException, UncommitedChangesException
+from src.lib import ExperienceExistsException
 
 
 orm = MongodbORM()
@@ -91,7 +91,7 @@ def _fill_experience(experience: dict):
 
 
 def _project_not_found():
-    print('This directory is not a registered AKK project, please make sure you are issuing the command from the right directory.')
+    print('This directory is not a registered AKK project, please make sure you are issuing the cli from the right directory.')
     print('If you did not initialize the project all you have to do is to run:')
     print('$ akk project init [-h: for more information]')
 
@@ -109,7 +109,7 @@ def _get_project_last_commit(path: str):
 
 
 def _assemble_code(project, output_dir):
-    # todo: add new attribute to project and new command argument to project init: entrypoint: main .py file, default: main.py
+    # todo: add new attribute to project and new cli argument to project init: entrypoint: main .py file, default: main.py
     project['entrypoint'] = 'main.py'
     importer = CodeSourceImporter(project['entrypoint'], project['path'], output_dir)
     importer.find_file_deps()
@@ -226,7 +226,7 @@ def start_exp(exp_id, *args, **kwargs):
 
 def stop_exp(*args, **kwargs):
     print('-' * 50)
-    print('experience stop command / Not yet implemented')
+    print('experience stop cli / Not yet implemented')
     print('-' * 50)
 
 
@@ -262,5 +262,5 @@ def list_exp(*args, **kwargs):
 
 def status_exp(*args, **kwargs):
     print('-' * 50)
-    print('experience status command / Not yet implemented')
+    print('experience status cli / Not yet implemented')
     print('-' * 50)

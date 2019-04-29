@@ -1,9 +1,9 @@
 import os
 from git import Repo
 from git.exc import InvalidGitRepositoryError
-from lib.services.db import MongodbORM
-from lib.exception.database import ProjectExistsException
-from lib.exception.git import NoRepoException
+from src.lib.services.db import MongodbORM
+from src.lib import ProjectExistsException
+from src.lib import NoRepoException
 
 
 orm = MongodbORM()
@@ -47,13 +47,13 @@ def init_project(name: str, path: str, repository: str, framework: str, cpu: boo
 
 def status_project(*args, **kwargs):
     print('-' * 50)
-    print('project status command / Not yet implemented')
+    print('project status cli / Not yet implemented')
     print('-' * 50)
 
 
 def update_project(*args, **kwargs):
     print('-' * 50)
-    print('project update command / Not yet implemented')
+    print('project update cli / Not yet implemented')
     print('-' * 50)
 
 

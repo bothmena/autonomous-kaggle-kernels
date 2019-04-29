@@ -3,6 +3,6 @@
 **/__pycache__
 results
 examples/
-core/old_cycle.py
+tests/api/old_cycle.py
 kaggle-api
 .pytest_cache/

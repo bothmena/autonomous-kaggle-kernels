@@ -1,5 +1,5 @@
 from unittest import TestCase
-from lib.command.source_code import CodeSourceImporter
+from src.lib import CodeSourceImporter
 
 
 class TestSourceCodeImporter(TestCase):

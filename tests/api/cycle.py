@@ -1,5 +1,5 @@
 from unittest import TestCase
-from core.cycle import Cycle
+from src.api.cycle import Cycle
 import os
 import numpy as np
 

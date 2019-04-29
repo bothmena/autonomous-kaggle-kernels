@@ -1,6 +1,6 @@
 from unittest import TestCase
-from lib.services.db import MongodbORM
-from lib.exception.database import ProjectExistsException, ExperienceExistsException
+from src.lib.services.db import MongodbORM
+from src.lib import ProjectExistsException, ExperienceExistsException
 
 
 class MongoDBTest(TestCase):

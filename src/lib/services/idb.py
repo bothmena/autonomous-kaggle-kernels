@@ -1,5 +1,5 @@
 from abc import abstractmethod
-from lib.services.singleton import ABCSingleton
+from src.lib import ABCSingleton
 
 
 class IDataBase(metaclass=ABCSingleton):

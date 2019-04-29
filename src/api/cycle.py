@@ -1,6 +1,6 @@
 import time
 import numpy as np
-from lib.services.container import ServiceContainer
+from src.lib.services import ServiceContainer
 
 
 class Profiler:

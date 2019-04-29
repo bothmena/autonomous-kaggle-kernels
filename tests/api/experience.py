@@ -1,10 +1,10 @@
 from unittest import TestCase
-from core.experience import PyTorchExperience
+from src.api.experience import PyTorchExperience
 from torch import nn
 from torch import optim
-from lib.command.experience import _is_exp_valid
-from tests.lib.command.samples import experience_dic, experience_dic_2, experience_dic_3, experience_dic_4, experience_dic_5, experience_dic_6, experience_dic_7, \
-    experience_dic_8, experience_dic_9, experience_dic_10, experience_dic_11, experience_dic_12, experience_dic_13, experience_dic_14
+from src.cli.experience import _is_exp_valid
+from tests.cli.samples import experience_dic, experience_dic_2, experience_dic_3, experience_dic_4, experience_dic_5, experience_dic_6, experience_dic_7, \
+    experience_dic_8, experience_dic_9, experience_dic_10, experience_dic_11, experience_dic_12, experience_dic_13
 
 
 class Network(nn.Module):
