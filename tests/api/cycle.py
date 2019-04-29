@@ -54,6 +54,9 @@ class CycleTest(TestCase):
         self.assertGreater(arr2[1], 0)
         self.assertGreater(arr2[2], 0)
 
+        os.remove(os.path.join(os.getcwd(), cycle.cycle_id + '.npy'))
+        os.remove(os.path.join(os.getcwd(), cycle2.cycle_id + '.npy'))
+
 # for loop:                                     0.6962621927261352  /  10000000 = 10M steps
 # while: check only steps:                      3.5596400260925294  /  10000000 = 10M steps
 # while: checks step + remaining time:          5.3298518657684330  /  10000000 = 10M steps
