@@ -1,6 +1,6 @@
 from unittest import TestCase
 from src.lib.services.db import MongodbORM
-from src.lib import ProjectExistsException, ExperienceExistsException
+from src.lib.exception import ProjectExistsException, ExperienceExistsException
 
 
 class MongoDBTest(TestCase):
@@ -98,7 +98,7 @@ class MongoDBTest(TestCase):
         self.experience['project'] = str(p_uid)
         e_uid = self.db.new_experience(self.experience)
 
-        exp_db = self.db.get_experience(str(e_uid)[:10])
+        exp_db = self.db.get_experience(str(e_uid))
 
         keys = list(self.experience.keys()) + ['project']
         keys.pop(keys.index('date'))

@@ -9,6 +9,6 @@ class ExperienceCLITest(TestCase):
         experiences = _get_experiences('file_not_exist.py')
         self.assertIsNone(experiences)
 
-        filename = os.path.join(os.getcwd(), 'tests/lib/cli/files/experiences.py')
+        filename = os.path.join(os.getcwd(), 'tests/cli/samples/experiences.py')
         experiences = _get_experiences(filename)
         self.assertEqual(len(experiences), 3)

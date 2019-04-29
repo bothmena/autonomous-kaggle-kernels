@@ -1,5 +1,5 @@
 from unittest import TestCase
-from lib.services.container import Singleton
+from src.lib.services import Singleton
 
 
 class Service(metaclass=Singleton):

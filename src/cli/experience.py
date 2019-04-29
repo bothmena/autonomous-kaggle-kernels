@@ -1,11 +1,12 @@
 import os
 import shutil
+
 from git import Repo
 from git.exc import InvalidGitRepositoryError
+
+from src.lib.exception import NoRepoException, UncommitedChangesException, ExperienceExistsException
 from src.lib.services.db import MongodbORM
-from src.lib import CodeSourceImporter
-from src.lib import NoRepoException, UncommitedChangesException
-from src.lib import ExperienceExistsException
+from src.lib.utils import CodeSourceImporter
 
 
 orm = MongodbORM()
@@ -54,18 +55,9 @@ def _get_experiences(filename: str):
             code = compile(f.read(), filename, 'exec')
             local_vars = {}
             exec(code, {}, local_vars)
-            i = 0
             for _, var_val in local_vars.items():
-                if isinstance(var_val, dict):
-                    i += 1
-                    valid_exp = True
-                    for key in ['batch_size', 'epochs', 'lr', 'optimizer', 'loss']:
-                        if key not in var_val.keys():
-                            print('ERROR! not saving experience #{}, missing a required field: {}'.format(i, key))
-                            valid_exp = False
-                            break
-                    if valid_exp:
-                        experiences.append(var_val)
+                if isinstance(var_val, dict) and _is_exp_valid(var_val):
+                    experiences.append(var_val)
 
         return experiences
     except FileNotFoundError:

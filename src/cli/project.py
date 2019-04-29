@@ -1,9 +1,10 @@
 import os
+
 from git import Repo
 from git.exc import InvalidGitRepositoryError
+
+from src.lib.exception import ProjectExistsException, NoRepoException
 from src.lib.services.db import MongodbORM
-from src.lib import ProjectExistsException
-from src.lib import NoRepoException
 
 
 orm = MongodbORM()

@@ -1,10 +1,14 @@
 import time
+
 import numpy as np
-from src.lib.services import ServiceContainer
+
+from src.api.saver import Saver
 
 
 class Profiler:
-    def __init__(self):
+    def __init__(self, cycle_id: str, steps: int):
+        self.cycle_id = cycle_id
+        self.steps = steps
         self.start = None
         self.end = None
 
@@ -14,30 +18,27 @@ class Profiler:
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.end = time.time()
+        Saver.save_numpy(self.cycle_id, np.array([self.start, self.end, self.end - self.start]))
 
 
 class Cycle:
-
     n_cycles = 0
 
     def __init__(self, cycle_id: str = None):
-        self.container = ServiceContainer()
         self._steps = None
         self._max_duration = None
-        self.run_time = None
-        self.profiling_data = None
         if cycle_id is None:
-            self.cycle_id = 'cycle_' + str(self.n_cycles)
+            self.cycle_id = 'cycle_' + str(Cycle.n_cycles)
         else:
             self.cycle_id = cycle_id
-        self.n_cycles += 1
+        Cycle.n_cycles += 1
 
     @property
-    def step(self):
+    def steps(self):
         return self._steps
 
-    @step.setter
-    def step(self, value):
+    @steps.setter
+    def steps(self, value):
         self._steps = value
 
     @property
@@ -55,11 +56,10 @@ class Cycle:
             return ((time.time() - start_time) < self._max_duration) and step < self._steps
 
     def loop(self):
-        with Profiler() as p:
+        if self.steps is None:
+            raise ValueError('You need to set the number of steps first.')
+        with Profiler(self.cycle_id, self.steps) as p:
             step = 0
             while self.cont(step, p.start):
                 step += 1
                 yield step
-
-        self.run_time = p.end - p.start
-        self.profiling_data = np.array([p.start, p.end, self.run_time, step])
