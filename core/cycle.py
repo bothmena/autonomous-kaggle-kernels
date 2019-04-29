@@ -18,19 +18,41 @@ class Profiler:
 
 class Cycle:
 
-    def __init__(self):
+    n_cycles = 0
+
+    def __init__(self, cycle_id: str = None):
         self.container = ServiceContainer()
-        # todo, get number of steps from service container -> database
-        self.steps = 10000000
-        self.max_seconds = 100
+        self._steps = None
+        self._max_duration = None
         self.run_time = None
         self.profiling_data = None
+        if cycle_id is None:
+            self.cycle_id = 'cycle_' + str(self.n_cycles)
+        else:
+            self.cycle_id = cycle_id
+        self.n_cycles += 1
+
+    @property
+    def step(self):
+        return self._steps
+
+    @step.setter
+    def step(self, value):
+        self._steps = value
+
+    @property
+    def max_duration(self):
+        return self._max_duration
+
+    @max_duration.setter
+    def max_duration(self, value):
+        self._max_duration = value
 
     def cont(self, step: int, start_time: float):
-        if self.max_seconds is None:
-            return step < self.steps
+        if self._max_duration is None:
+            return step < self._steps
         else:
-            return ((time.time() - start_time) < self.max_seconds) and step < self.steps
+            return ((time.time() - start_time) < self._max_duration) and step < self._steps
 
     def loop(self):
         with Profiler() as p:
@@ -40,4 +62,4 @@ class Cycle:
                 yield step
 
         self.run_time = p.end - p.start
-        self.profiling_data = np.array([p.start, p.end, self.run_time])
+        self.profiling_data = np.array([p.start, p.end, self.run_time, step])

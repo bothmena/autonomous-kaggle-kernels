@@ -1,11 +1,12 @@
 import os
+import sys
 import importlib
 import inspect
 from lib.exception.implementation import NoExperienceException, ManyExperiencesException
 
 
 class CodeSourceImporter:
-    def __init__(self, main_fn: str, project_dir: str, output_fn: str = 'output.py', mark_cells: bool = False):
+    def __init__(self, main_fn: str, project_dir: str, output_dir: str, output_fn: str = 'output.py', mark_cells: bool = False):
         """
         :param main_fn: main python file filename
         :param project_dir: where the main file is located.
@@ -18,6 +19,7 @@ class CodeSourceImporter:
         if project_dir[-1] == '/':
             project_dir = project_dir[:-1]
         self.project_dir = project_dir
+        self.output_dir = output_dir
         if not output_fn.endswith('.py'):
             output_fn += '.py'
         self.output_fn = output_fn
@@ -25,6 +27,8 @@ class CodeSourceImporter:
 
         self.local_imports = {}
         self.imports = set()
+
+        sys.path.insert(0, self.project_dir)
 
     @classmethod
     def get_pkg_modules(cls, import_statement: str) -> zip:
@@ -119,40 +123,43 @@ class CodeSourceImporter:
             else:
                 yield 'from {} import {}'.format(pkg, mod) if alias is None else 'from {} import {} as {}'.format(pkg, mod, alias)
 
-    def get_ri_source_code(self):
+    def get_ri_source_code(self, output_file):
         """
         :return: the source code of the relative imports
         """
         experiences = 0
+        exp_name = None
         for module in sorted(self.local_imports, key=self.local_imports.get, reverse=True):
             parts = module.split('.')
-            pkg = os.path.basename(self.project_dir)
-            imp_st = '{}.{}'.format(pkg, '.'.join(parts[:-1]))
+            imp_st = '{}'.format('.'.join(parts[:-1]))
 
             imp = importlib.import_module(imp_st)
             obj = eval('imp.' + parts[-1])
 
-            print(type(obj), imp_st)
             if isinstance(obj, dict):
                 is_experience = True
                 for key in ['batch_size', 'epochs', 'lr', 'optimizer', 'loss']:
                     if key not in obj.keys():
-                        print('ERROR! not saving experience #{}, missing a required field: {}'.format(i, key))
                         is_experience = False
                         break
                 if is_experience:
                     experiences += 1
+                    exp_name = parts[-1]
                     continue
 
             yield inspect.getsource(obj).strip()
 
-        # if experiences == 0:
-        #     raise NoExperienceException()
-        # elif experiences > 1:
-        #     raise ManyExperiencesException()
+        if experiences == 0:
+            raise NoExperienceException()
+        elif experiences > 1:
+            raise ManyExperiencesException()
+
+        output_file.write('# __EXP__\n')
+        output_file.write('# {} = ____\n\n'.format(exp_name))
+
 
     def write_output(self):
-        with open(os.path.join(self.project_dir, self.output_fn), 'w') as output:
+        with open(os.path.join(self.output_dir, self.output_fn), 'w') as output:
             output.write('# __imp__\n')
             for line in self.get_import_statements():
                 if self.mark_cells:
@@ -161,7 +168,7 @@ class CodeSourceImporter:
             output.write('\n\n')
 
             output.write('# __dec__\n')
-            for sc in self.get_ri_source_code():
+            for sc in self.get_ri_source_code(output):
                 if self.mark_cells:
                     output.write('# __cell__\n')
                 output.write(sc + '\n\n\n')

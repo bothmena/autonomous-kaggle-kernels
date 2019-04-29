@@ -42,12 +42,19 @@ class Experience(metaclass=ABCMeta):
             self._loss_args = loss_args
 
         self._steps = steps
+        self.custom_hps = kwargs
 
         self.current_epoch = 0
 
     @abstractmethod
     def get_optimizer(self, net_id: str, *args):
         """required method"""
+
+    def get_hp(self, name: str):
+        try:
+            return self.custom_hps[name]
+        except KeyError:
+            raise KeyError(name + ' is not defined in this experience')
 
     def lr(self, net_id: str):
         v = self.networks[net_id].get('lr', self._lr)
@@ -74,16 +81,10 @@ class Experience(metaclass=ABCMeta):
         return v
 
     def lr_decay(self, net_id: str):
-        v = self.networks[net_id].get('lr_decay', self._lr_decay)
-        if v is None:
-            raise HPNotDefinedException(hp='lr_decay')
-        return v
+        return self.networks[net_id].get('lr_decay', self._lr_decay)
 
     def lr_cycle(self, net_id: str):
-        v = self.networks[net_id].get('lr_cycle', self._lr_cycle)
-        if v is None:
-            raise HPNotDefinedException(hp='lr_cycle')
-        return v
+        return self.networks[net_id].get('lr_cycle', self._lr_cycle)
 
     def opt_args(self, net_id: str):
         return self.networks[net_id].get('opt_args', self._opt_args)
@@ -129,9 +130,9 @@ class PyTorchExperience(Experience):
     def get_optimizer(self, parameters, net_id: str = 'net_0'):
         opt = self.optimizer(net_id)
         if opt == 'adam':
-            return optim.Adam(parameters, lr=self.get_lr(), **self.opt_args(net_id))
+            return optim.Adam(parameters, lr=self.get_lr(net_id), **self.opt_args(net_id))
         elif opt == 'rmsprop':
-            return optim.RMSprop(parameters, lr=self.get_lr(), **self.opt_args(net_id))
+            return optim.RMSprop(parameters, lr=self.get_lr(net_id), **self.opt_args(net_id))
         else:
             raise NotImplementedError('This optimizer is not yet implemented')
 

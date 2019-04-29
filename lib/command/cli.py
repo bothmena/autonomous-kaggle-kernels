@@ -107,17 +107,17 @@ def parse_experience(subparsers):
     subparsers_exp.required = True
     subparsers_exp.choices = Help.exp_choices
 
-    # experience init
-    parser_exp_init = subparsers_exp.add_parser('init', formatter_class=argparse.RawTextHelpFormatter, help=Help.exp_init)
-    parser_exp_init_opt = parser_exp_init._action_groups.pop()
+    # experience new
+    parser_exp_new = subparsers_exp.add_parser('new', formatter_class=argparse.RawTextHelpFormatter, help=Help.exp_new)
+    parser_exp_new_opt = parser_exp_new._action_groups.pop()
 
-    for kwargs in Help.exp_init_args:
+    for kwargs in Help.exp_new_args:
         args = kwargs['args']
         del kwargs['args']
-        parser_exp_init_opt.add_argument(*args, **kwargs)
+        parser_exp_new_opt.add_argument(*args, **kwargs)
 
-    parser_exp_init._action_groups.append(parser_exp_init_opt)
-    parser_exp_init.set_defaults(func=experience.init_exp)
+    parser_exp_new._action_groups.append(parser_exp_new_opt)
+    parser_exp_new.set_defaults(func=experience.new_exp)
 
     # experience status
     parser_exp_status = subparsers_exp.add_parser('status', formatter_class=argparse.RawTextHelpFormatter, help=Help.exp_status)
@@ -131,7 +131,7 @@ def parse_experience(subparsers):
     parser_exp_status._action_groups.append(parser_exp_status_opt)
     parser_exp_status.set_defaults(func=experience.status_exp)
 
-    # experience update
+    # experience start
     parser_exp_start = subparsers_exp.add_parser('start', formatter_class=argparse.RawTextHelpFormatter, help=Help.exp_start)
     parser_exp_start_opt = parser_exp_start._action_groups.pop()
 
@@ -143,7 +143,7 @@ def parse_experience(subparsers):
     parser_exp_start._action_groups.append(parser_exp_start_opt)
     parser_exp_start.set_defaults(func=experience.start_exp)
 
-    # experience status
+    # experience stop
     parser_exp_stop = subparsers_exp.add_parser('stop', formatter_class=argparse.RawTextHelpFormatter, help=Help.exp_stop)
     parser_exp_stop_opt = parser_exp_stop._action_groups.pop()
 
@@ -155,7 +155,7 @@ def parse_experience(subparsers):
     parser_exp_stop._action_groups.append(parser_exp_stop_opt)
     parser_exp_stop.set_defaults(func=experience.stop_exp)
 
-    # experience update
+    # experience list
     parser_exp_list = subparsers_exp.add_parser('list', formatter_class=argparse.RawTextHelpFormatter, help=Help.exp_list)
     parser_exp_list_opt = parser_exp_list._action_groups.pop()
 
@@ -224,11 +224,12 @@ class Help:
     project_list = 'List all the projects'
 
     exp = 'Manage your project experiences'
-    exp_init = 'Initiate a new experience'
-    exp_status = 'Check the status of experiences'
+    exp_new = 'Create a new experience'
+    exp_init = 'Assemble code and prepare for starting experience by starting a profiling commit to split training on as much commits as needed.'
     exp_start = 'Start running an experience on kaggle kernels'
     exp_stop = 'Stop an experience, this will stop the experience from running further commits.'
     exp_list = 'List a project experiences, you can also list an experience\'s commits and their status'
+    exp_status = 'Check the status of experiences'
 
     ss = 'Manage hyper parameters and net architecture search spaces'
     ss_run = 'Launch multiple experiences from a search space'
@@ -295,7 +296,7 @@ class Help:
     ]
     project_list_args = []
 
-    exp_init_args = [
+    exp_new_args = [
         {
             'args': ['-f', '--filename'],
             'dest': 'filename',

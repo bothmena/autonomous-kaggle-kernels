@@ -28,5 +28,5 @@ class HPNotDefinedException(ImplementationException):
                 self.message = 'the {} for network {} is not defined in the experience'.format(hp, net_id)
         else:
             self.message = message
-        super(HPNotDefinedException, self).__init__(message, status)
+        super(HPNotDefinedException, self).__init__(self.message, status)
         self.status = status

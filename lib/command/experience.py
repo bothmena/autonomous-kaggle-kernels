@@ -1,4 +1,5 @@
 import os
+import shutil
 from git import Repo
 from git.exc import InvalidGitRepositoryError
 from lib.services.db import MongodbORM
@@ -8,6 +9,42 @@ from lib.exception.database import ExperienceExistsException
 
 
 orm = MongodbORM()
+
+
+def _is_exp_valid(exp: dict):
+    for key, tp in {'batch_size': int, 'cycles': dict, 'networks': dict}.items():
+        if key not in exp.keys():
+            return False
+        elif not isinstance(exp[key], tp):
+            return False
+
+    for _, hps in exp['networks'].items():
+        if not isinstance(hps, dict):
+            return False
+        for key, tp in {'lr': float, 'optimizer': str, 'loss': str}.items():
+            if key in hps.keys():
+                if not isinstance(hps[key], tp):
+                    return False
+            elif key in exp.keys():
+                if not isinstance(exp[key], tp):
+                    return False
+            else:
+                return False
+
+    for _, items in exp['cycles'].items():
+        if not isinstance(items, dict):
+            return False
+        for key, tp in {'steps': int}.items():
+            if key in items.keys():
+                if not isinstance(items[key], tp):
+                    return False
+            elif key in exp.keys():
+                if not isinstance(exp[key], tp):
+                    return False
+            else:
+                return False
+
+    return True
 
 
 def _get_experiences(filename: str):
@@ -59,16 +96,65 @@ def _project_not_found():
     print('$ akk project init [-h: for more information]')
 
 
-def _assemble_code(project):
+def _get_project_last_commit(path: str):
+    repo = Repo(path)
+    if repo.is_dirty():
+        raise UncommitedChangesException()
+    last_commit = None
+    for commit in repo.iter_commits():
+        last_commit = commit.name_rev[:10]
+        break
+
+    return last_commit
+
+
+def _assemble_code(project, output_dir):
     # todo: add new attribute to project and new command argument to project init: entrypoint: main .py file, default: main.py
     project['entrypoint'] = 'main.py'
-    importer = CodeSourceImporter(project['entrypoint'], project['path'])
+    importer = CodeSourceImporter(project['entrypoint'], project['path'], output_dir)
     importer.find_file_deps()
     importer.write_output()
 
 
+def _write_exp_data(experience, path, last_commit):
+    with open(os.path.join(path, '.akk', last_commit, 'temp.py'), 'w') as temp:
+        dic_next = False
+        prev_space = 0
+        pprev_space = 0
+        ppprev_space = 0
+        with open(os.path.join(path, '.akk', last_commit, 'output.py'), 'r') as f:
+            for line in f.readlines():
+                if line == '# __EXP__\n':
+                    dic_next = True
+                elif dic_next:
+                    exp = experience.copy()
+                    del exp['project']
+                    del exp['date']
+                    del exp['status']
+                    del exp['search_space']
+                    del exp['_id']
+                    line = line.rstrip()[2:].replace('____', str(exp)) + '\n\n'
+                    dic_next = False
+                elif line.strip() == '':
+                    ppprev_space = pprev_space
+                    pprev_space = prev_space
+                    prev_space = 1
+                else:
+                    ppprev_space = pprev_space
+                    pprev_space = prev_space
+                    prev_space = 0
+
+                if prev_space * pprev_space * ppprev_space == 0:
+                    temp.write(line)
+
+    os.remove(os.path.join(path, '.akk', last_commit, 'output.py'))
+    shutil.move(os.path.join(path, '.akk', last_commit, 'temp.py'),
+                os.path.join(path, '.akk', last_commit, 'output.py'))
+    os.chmod(os.path.join(path, '.akk', last_commit, 'output.py'), 0o755)
+
+
 # def new_project_handler(group=None, category=None, sort_by=None, page=1, search=None, csv_display=False):
-def init_exp(filename: str):
+def new_exp(filename: str):
     path = os.getcwd()
     project = orm.get_project(path)
     if project is None:
@@ -78,24 +164,26 @@ def init_exp(filename: str):
         successes = 0
         failures = 0
         for experience in experiences:
-            experience = _fill_experience(experience)
-            experience['project'] = str(project['_id'])
-            experience['search_space'] = None
-            experience['status'] = 'Not started'  # queued / running / stopped / completed
-            try:
-                orm.new_experience(experience)
-                successes += 1
-            except ExperienceExistsException:
-                failures += 1
+            if _is_exp_valid(experience):
+                try:
+                    last_commit = _get_project_last_commit(path)
+                    if last_commit is None:
+                        raise UncommitedChangesException()
+                except InvalidGitRepositoryError:
+                    raise NoRepoException()
+
+                experience['project'] = str(project['_id'])
+                experience['git_commit'] = last_commit
+                experience['search_space'] = None
+                experience['status'] = 'Not started'  # profiling / running / stopped / completed / failed / queued (when using search space and set limit of parallel experiences)
+                try:
+                    orm.new_experience(experience)
+                    successes += 1
+                except ExperienceExistsException:
+                    failures += 1
 
         print('Experiences saved successfully:', successes)
         print('Experiences that already exist:', failures)
-
-
-def status_exp(*args, **kwargs):
-    print('-' * 50)
-    print('experience status command / Not yet implemented')
-    print('-' * 50)
 
 
 def start_exp(exp_id, *args, **kwargs):
@@ -114,13 +202,7 @@ def start_exp(exp_id, *args, **kwargs):
 
     try:
         # check project last commit, else warning
-        repo = Repo(path)
-        if repo.is_dirty():
-            raise UncommitedChangesException()
-        last_commit = None
-        for commit in repo.iter_commits():
-            last_commit = commit.name_rev[:10]
-            break
+        last_commit = _get_project_last_commit(path)
         if last_commit is None:
             raise UncommitedChangesException()
 
@@ -129,11 +211,13 @@ def start_exp(exp_id, *args, **kwargs):
             os.mkdir(os.path.join(path, '.akk', last_commit), 0o755)
         # check if assembled file exists in: project_path/.akk/_last_commit_id_/output.py, if not assemble code.
         if not os.path.isfile(os.path.join(path, '.akk', last_commit, 'output.py')):
-            _assemble_code(project)
+            _assemble_code(project, os.path.join(path, '.akk', last_commit))
     except InvalidGitRepositoryError:
         raise NoRepoException()
 
-    # todo: handle separating experience import from other imports.
+    _write_exp_data(experience, path, last_commit)
+
+    # todo: write the FKP project using the akk library.
 
     # todo: run profiling commit to measure the duration of each cycle.
 
@@ -174,3 +258,9 @@ def list_exp(*args, **kwargs):
                                                                                                       exp['optimizer'], exp['loss'], exp['status']))
             print(' ' + '-' * 125)
         print('')
+
+
+def status_exp(*args, **kwargs):
+    print('-' * 50)
+    print('experience status command / Not yet implemented')
+    print('-' * 50)
