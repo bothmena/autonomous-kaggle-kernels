@@ -228,27 +228,22 @@ def list_exp(*args, **kwargs):
     if project is None:
         _project_not_found()
     else:
-        def lr_state(lr, lr_decay, lr_cycle):
-            if lr_decay is not None:
-                if lr_cycle is not None:
-                    return 'D+R: {:.2f} / {:d}'.format(lr_decay, lr_cycle)
-                else:
-                    return 'Decay: {:.2f}'.format(lr_decay)
-            else:
-                return 'Const: {:.5f}'.format(lr)
-
         print('')
-        print(' ' + '-' * 125)
-        print(' | {:3s}  | {:24s} | {:10s} | {:10s} | {:14s} | {:10s} | {:16s} | {:12s} |'.format('#', 'Id', 'Batch Size', 'Epochs', 'Learning Rate', 'Optimizer', 'Loss Fct'
-                                                                                                  , 'Status'))
-        print(' ' + '-' * 125)
+        print(' ' + '-' * 98)
+        print(' | {:3s} | {:24s} | {:10s} | {:14s} | {:14s} | {:14s} |'.format('#', 'Id', 'Git Commit', 'Batch Size', 'Cycles', 'Networks'))
+        print(' ' + '-' * 98)
         i = 0
         for exp in orm.experiences.find({'project': str(project['_id'])}):
+
             i += 1
-            print(' | {:3d}  | {:24s} | {:10d} | {:10d} | {:14s} | {:10s} | {:16s} | {:12s} |'.format(i, str(exp['_id']), exp['batch_size'], exp['epochs'],
-                                                                                                      lr_state(exp['lr'], exp['lr_decay'], exp['lr_cycle']),
-                                                                                                      exp['optimizer'], exp['loss'], exp['status']))
-            print(' ' + '-' * 125)
+            steps = sum([c['steps'] for _, c in exp['cycles'].items()])
+
+            print(' | {:3d} | {:24s} | {:10s} | {:14d} | {:14s} | {:14d} |'.format(
+                i, str(exp['_id']), exp['git_commit'], exp['batch_size'], '{} / {} steps'.format(len(exp['cycles']), steps),
+                len(exp['networks']))
+            )
+            print(' ' + '-' * 98)
+
         print('')
 
 
