@@ -216,7 +216,7 @@ def parse_search_space(subparsers):
 class Help:
     akk_choices = ['project', 'p', 'experience', 'e', 'search-space', 'ss']
     project_choices = ['init', 'status', 'update', 'list']
-    exp_choices = ['init', 'status', 'start', 'stop', 'list']
+    exp_choices = ['new', 'status', 'start', 'stop', 'list']
     ss_choices = ['expand', 'list', 'run']
 
     project = 'Manage your projects'
@@ -227,8 +227,7 @@ class Help:
 
     exp = 'Manage your project experiences'
     exp_new = 'Create a new experience'
-    exp_init = 'Assemble code and prepare for starting experience by starting a profiling commit to split training on as much commits as needed.'
-    exp_start = 'Start running an experience on kaggle kernels'
+    exp_start = 'Assemble code if not already assembled then start running an experience on kaggle kernels'
     exp_stop = 'Stop an experience, this will stop the experience from running further commits.'
     exp_list = 'List a project experiences, you can also list an experience\'s commits and their status'
     exp_status = 'Check the status of experiences'
