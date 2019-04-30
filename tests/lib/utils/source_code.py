@@ -1,5 +1,5 @@
 from unittest import TestCase
-from src.lib.utils import CodeSourceImporter
+from akk.lib.utils import CodeSourceImporter
 
 
 class TestSourceCodeImporter(TestCase):

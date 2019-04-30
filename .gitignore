@@ -3,6 +3,8 @@
 **/__pycache__
 results
 examples/
-tests/api/old_cycle.py
 kaggle-api
 .pytest_cache/
+akk.egg-info/
+build/
+dist/

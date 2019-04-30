@@ -4,9 +4,9 @@ import shutil
 from git import Repo
 from git.exc import InvalidGitRepositoryError
 
-from src.lib.exception import NoRepoException, UncommitedChangesException, ExperienceExistsException
-from src.lib.services.db import MongodbORM
-from src.lib.utils import CodeSourceImporter
+from akk.lib.exception import NoRepoException, UncommitedChangesException, ExperienceExistsException
+from akk.lib.services import MongodbORM
+from akk.lib.utils import CodeSourceImporter
 
 
 orm = MongodbORM()

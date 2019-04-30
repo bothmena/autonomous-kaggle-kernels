@@ -6,8 +6,7 @@ if os.path.isdir('/home/bothmena/Projects/PyCharm/BrighterAI/autonomous-kaggle-k
     sys.path.append('/home/bothmena/Projects/PyCharm/BrighterAI/autonomous-kaggle-kernels')
 elif os.path.isdir('/workspace/BrighterAI/autonomous-kaggle-kernels'):
     sys.path.append('/workspace/BrighterAI/autonomous-kaggle-kernels')
-from src.cli import search_space
-from src.cli import experience, project
+from akk.cli import experience, project, search_space
 
 
 # from . import project, experience, search_space
@@ -16,7 +15,7 @@ from src.cli import experience, project
 def main():
     parser = argparse.ArgumentParser(description='Autonomous Kaggle Kernels CLI', prog='akk', formatter_class=argparse.RawTextHelpFormatter)
 
-    parser.add_argument('-v', '--version', action='version', version='Autonomous Kaggle Kernels CLI - %(prog)s - v1.0')
+    parser.add_argument('-v', '--version', action='version', version='Autonomous Kaggle Kernels CLI - %(prog)s - v0.1')
 
     subparsers = parser.add_subparsers(title='commands', dest='cli')
     subparsers.required = True

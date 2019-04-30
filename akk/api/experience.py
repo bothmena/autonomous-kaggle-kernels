@@ -1,7 +1,7 @@
 from abc import ABCMeta, abstractmethod
 from torch import nn
 from torch import optim
-from src.lib.exception.implementation import HPNotDefinedException
+from akk.lib.exception import HPNotDefinedException
 
 
 class Experience(metaclass=ABCMeta):
@@ -142,6 +142,8 @@ class PyTorchExperience(Experience):
             return nn.MSELoss(**self.loss_args(net_id))
         elif loss == 'cross_entropy':
             return nn.CrossEntropyLoss(**self.loss_args(net_id))
+        elif loss == 'smooth_l1':
+            return nn.SmoothL1Loss(**self.loss_args(net_id))
         elif loss == 'custom':
             return None
         else:

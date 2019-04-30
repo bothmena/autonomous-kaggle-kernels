@@ -2,7 +2,7 @@ import os
 import sys
 import importlib
 import inspect
-from src.lib.exception.implementation import NoExperienceException, ManyExperiencesException
+from akk.lib.exception import NoExperienceException, ManyExperiencesException
 
 
 class CodeSourceImporter:

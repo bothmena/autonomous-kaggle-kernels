@@ -1,5 +1,5 @@
 from unittest import TestCase
-from src.lib.services import Singleton
+from akk.lib.services.singleton import Singleton
 
 
 class Service(metaclass=Singleton):

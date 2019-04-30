@@ -3,8 +3,8 @@ from datetime import datetime
 from bson import ObjectId
 from pymongo import MongoClient
 
-from src.lib.exception import ProjectExistsException, ExperienceExistsException
-from src.lib.services.idb import IDataBase
+from akk.lib.exception import ProjectExistsException, ExperienceExistsException
+from akk.lib.services.idb import IDataBase
 
 
 class MongodbORM(IDataBase):

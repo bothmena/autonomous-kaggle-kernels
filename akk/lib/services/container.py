@@ -1,4 +1,5 @@
-from src.lib.services import MongodbORM, Singleton
+from akk.lib.services.singleton import Singleton
+from akk.lib.services import MongodbORM
 
 
 # todo make sure you need this. after all you only using 2 (or even only one) services: db + config parser

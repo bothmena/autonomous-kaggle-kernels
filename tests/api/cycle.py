@@ -1,5 +1,5 @@
 from unittest import TestCase
-from src.api.cycle import Cycle
+from akk.api import Cycle
 import os
 import numpy as np
 
@@ -56,7 +56,3 @@ class CycleTest(TestCase):
 
         os.remove(os.path.join(os.getcwd(), cycle.cycle_id + '.npy'))
         os.remove(os.path.join(os.getcwd(), cycle2.cycle_id + '.npy'))
-
-# for loop:                                     0.6962621927261352  /  10000000 = 10M steps
-# while: check only steps:                      3.5596400260925294  /  10000000 = 10M steps
-# while: checks step + remaining time:          5.3298518657684330  /  10000000 = 10M steps

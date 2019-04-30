@@ -1,5 +1,5 @@
 from unittest import TestCase
-from src.cli.experience import _get_experiences
+from akk.cli.experience import _get_experiences
 import os
 
 
