@@ -80,6 +80,9 @@ class Experience(metaclass=ABCMeta):
             raise HPNotDefinedException(message='the steps for cycle {} are not defined in the experience')
         return v
 
+    def max_runtime(self, cycle_id: str):
+        return self.cycles[cycle_id].get('max_runtime', None)
+
     def lr_decay(self, net_id: str):
         return self.networks[net_id].get('lr_decay', self._lr_decay)
 

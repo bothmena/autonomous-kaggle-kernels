@@ -3,7 +3,7 @@ from datetime import datetime
 from bson import ObjectId
 from pymongo import MongoClient
 
-from akk.lib.exception import ProjectExistsException, ExperienceExistsException
+from akk.lib.exception import ProjectExistsException, ExperienceExistsException, CommitExistsException
 from akk.lib.services.idb import IDataBase
 
 
@@ -15,6 +15,7 @@ class MongodbORM(IDataBase):
         self.database = self.client['akk']
         self.projects = self.database.project
         self.experiences = self.database.experience
+        self.commits = self.database.commit
         self.search_spaces = self.database.search_space
 
     def authenticate(self):
@@ -27,7 +28,7 @@ class MongodbORM(IDataBase):
         prj_db = self.projects.find_one({"$and": [{"name": project['name']}, {"path": project['path']}]})
 
         if prj_db is not None:
-            raise ProjectExistsException('A project must have unique path and/or name')
+            raise ProjectExistsException()
 
         project['date'] = datetime.utcnow()
         project_id = self.projects.insert_one(project).inserted_id
@@ -39,7 +40,7 @@ class MongodbORM(IDataBase):
         del experience_cp['search_space']
         exp_db = self.experiences.find_one(experience_cp)
         if exp_db is not None:
-            raise ExperienceExistsException('same experience for the same project already exists')
+            raise ExperienceExistsException()
 
         experience['date'] = datetime.utcnow()
         experience_id = self.experiences.insert_one(experience).inserted_id
@@ -60,3 +61,30 @@ class MongodbORM(IDataBase):
             criteria = {"_id": ObjectId(exp_id), 'project': project_id}
         exp = self.experiences.find_one(criteria)
         return exp
+
+    def new_commit(self, commit: dict, prev_commit: dict = None):
+        # commit = { experience: ObjectId, cycles: {steps, max_runtime: optional}
+        # index: int (0: profiling, 1+: real commits)
+        if prev_commit is None:
+            commit['index'] = 0
+        else:
+            commit['index'] = prev_commit['index'] + 1
+        commit_cp = commit.copy()
+        del commit_cp['cycles']
+
+        if self.commits.find_one(commit_cp) is not None:
+            return
+        # if self.commits.find_one(commit_cp) is not None:
+        #     raise CommitExistsException()
+
+        commit['date'] = datetime.utcnow()
+        # status: unstarted|running|completed|failed|queued
+        commit['status'] = 'unstarted'
+        commit['next'] = None
+        # focus: True when a commit is running or finished (success of failure) and the next commit did not started yet.
+        # it makes it easier to find the running experience status and the commit for next run .find_one({experience: id, focus: True})
+        commit['focus'] = commit['index'] == 0
+
+        commit_id = self.commits.insert_one(commit).inserted_id
+
+        return commit_id

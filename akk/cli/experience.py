@@ -1,68 +1,18 @@
 import os
-import shutil
+import json
 
-from git import Repo
 from git.exc import InvalidGitRepositoryError
 
 from akk.lib.exception import NoRepoException, UncommitedChangesException, ExperienceExistsException
 from akk.lib.services import MongodbORM
 from akk.lib.utils import CodeSourceImporter
+from akk.lib.utils.helpers import get_experiences, get_project_last_commit, is_exp_valid
+from akk.lib.utils import py2nb
+from kaggle.api import KaggleApi
 
 
 orm = MongodbORM()
-
-
-def _is_exp_valid(exp: dict):
-    for key, tp in {'batch_size': int, 'cycles': dict, 'networks': dict}.items():
-        if key not in exp.keys():
-            return False
-        elif not isinstance(exp[key], tp):
-            return False
-
-    for _, hps in exp['networks'].items():
-        if not isinstance(hps, dict):
-            return False
-        for key, tp in {'lr': float, 'optimizer': str, 'loss': str}.items():
-            if key in hps.keys():
-                if not isinstance(hps[key], tp):
-                    return False
-            elif key in exp.keys():
-                if not isinstance(exp[key], tp):
-                    return False
-            else:
-                return False
-
-    for _, items in exp['cycles'].items():
-        if not isinstance(items, dict):
-            return False
-        for key, tp in {'steps': int}.items():
-            if key in items.keys():
-                if not isinstance(items[key], tp):
-                    return False
-            elif key in exp.keys():
-                if not isinstance(exp[key], tp):
-                    return False
-            else:
-                return False
-
-    return True
-
-
-def _get_experiences(filename: str):
-    experiences = []
-    try:
-        with open(filename) as f:
-            code = compile(f.read(), filename, 'exec')
-            local_vars = {}
-            exec(code, {}, local_vars)
-            for _, var_val in local_vars.items():
-                if isinstance(var_val, dict) and _is_exp_valid(var_val):
-                    experiences.append(var_val)
-
-        return experiences
-    except FileNotFoundError:
-        print('File: "{}" not found. Please make sure that filename parameter is correct'.format(filename))
-        return None
+kaggle = KaggleApi()
 
 
 def _fill_experience(experience: dict):
@@ -88,18 +38,6 @@ def _project_not_found():
     print('$ akk project init [-h: for more information]')
 
 
-def _get_project_last_commit(path: str):
-    repo = Repo(path)
-    if repo.is_dirty():
-        raise UncommitedChangesException()
-    last_commit = None
-    for commit in repo.iter_commits():
-        last_commit = commit.name_rev[:10]
-        break
-
-    return last_commit
-
-
 def _assemble_code(project, output_dir):
     # todo: add new attribute to project and new cli argument to project init: entrypoint: main .py file, default: main.py
     project['entrypoint'] = 'main.py'
@@ -109,7 +47,14 @@ def _assemble_code(project, output_dir):
 
 
 def _write_exp_data(experience, path, last_commit):
-    with open(os.path.join(path, '.akk', last_commit, 'temp.py'), 'w') as temp:
+    if not os.path.isdir(os.path.join(path, '.akk', last_commit, 'experiences')):
+        os.mkdir(os.path.join(path, '.akk', last_commit, 'experiences'), 0o755)
+    if not os.path.isdir(os.path.join(path, '.akk', last_commit, 'experiences', str(experience['_id']))):
+        os.mkdir(os.path.join(path, '.akk', last_commit, 'experiences', str(experience['_id'])), 0o755)
+
+    temp_filename = os.path.join(path, '.akk', last_commit, 'experiences', str(experience['_id']), 'script.py')
+
+    with open(temp_filename, 'w') as temp:
         dic_next = False
         prev_space = 0
         pprev_space = 0
@@ -127,22 +72,34 @@ def _write_exp_data(experience, path, last_commit):
                     del exp['_id']
                     line = line.rstrip()[2:].replace('____', str(exp)) + '\n\n'
                     dic_next = False
-                elif line.strip() == '':
-                    ppprev_space = pprev_space
-                    pprev_space = prev_space
-                    prev_space = 1
+                    temp.write(line)
                 else:
-                    ppprev_space = pprev_space
-                    pprev_space = prev_space
-                    prev_space = 0
-
-                if prev_space * pprev_space * ppprev_space == 0:
                     temp.write(line)
 
-    os.remove(os.path.join(path, '.akk', last_commit, 'output.py'))
-    shutil.move(os.path.join(path, '.akk', last_commit, 'temp.py'),
-                os.path.join(path, '.akk', last_commit, 'output.py'))
-    os.chmod(os.path.join(path, '.akk', last_commit, 'output.py'), 0o755)
+    os.chmod(temp_filename, 0o777)
+
+
+def _slugify(st: str) -> str:
+    return ' '.join(st.rstrip().split()).lower().replace(' ', '-')
+
+
+def _kernel_metadata(project: dict, experience: dict):
+    name = project['name'] + ' ' + str(experience['_id'])
+    metadata = {
+        "id"                 : "bothmena/" + _slugify(name),
+        "title"              : name,
+        "code_file"          : "script.ipynb",
+        "language"           : "python",
+        "kernel_type"        : project['type'],
+        "is_private"         : project['private'],
+        "enable_gpu"         : not project['cpu'],
+        "enable_internet"    : project['internet'],
+        "dataset_sources"    : project['datasets'],  # ["bothmena/my-awesome-dataset"]
+        "competition_sources": project['competitions'],
+        "kernel_sources"     : project['kernels'] + ["bothmena/" + _slugify(name)]
+    }
+    with open(os.path.join(project['path'], '.akk', experience['git_commit'], 'experiences', str(experience['_id']), 'kernel-metadata.json'), 'w') as f:
+        json.dump(metadata, f)
 
 
 # def new_project_handler(group=None, category=None, sort_by=None, page=1, search=None, csv_display=False):
@@ -152,13 +109,13 @@ def new_exp(filename: str):
     if project is None:
         _project_not_found()
     else:
-        experiences = _get_experiences(filename)
+        experiences = get_experiences(filename)
         successes = 0
         failures = 0
         for experience in experiences:
-            if _is_exp_valid(experience):
+            if is_exp_valid(experience):
                 try:
-                    last_commit = _get_project_last_commit(path)
+                    last_commit = get_project_last_commit(path)
                     if last_commit is None:
                         raise UncommitedChangesException()
                 except InvalidGitRepositoryError:
@@ -194,7 +151,7 @@ def start_exp(exp_id, *args, **kwargs):
 
     try:
         # check project last commit, else warning
-        last_commit = _get_project_last_commit(path)
+        last_commit = get_project_last_commit(path)
         if last_commit is None:
             raise UncommitedChangesException()
 
@@ -207,11 +164,32 @@ def start_exp(exp_id, *args, **kwargs):
     except InvalidGitRepositoryError:
         raise NoRepoException()
 
-    _write_exp_data(experience, path, last_commit)
+    # create profiling commit for the experience
+    commit = {'experience': experience['_id'], 'cycles': {}}
+    for name, cycle in experience['cycles'].items():
+        commit['cycles'][name] = {'steps': 20, 'max_runtime': None}
 
-    # todo: write the FKP project using the akk library.
+    orm.new_commit(commit)
 
-    # todo: run profiling commit to measure the duration of each cycle.
+    # replace experience cycles with profiling commit cycles dict (where all cycles.steps = 50)
+    experience_cp = experience.copy()
+    experience_cp['cycles'] = commit['cycles']
+
+    # todo: uncomment next line
+    # _write_exp_data(experience_cp, path, last_commit)
+
+    # create a kernel meta-data
+    # todo: uncomment next line
+    # _kernel_metadata(project, experience)
+
+    # akk p init -n 'AKK - Udacity Facial Keypoints Detection Project' --internet
+    # convert script to notebook
+    folder = os.path.join(path, '.akk', last_commit, 'experiences', str(experience['_id']))
+    # todo: uncomment next line
+    # py2nb.convert(folder)
+
+    # todo: use kaggle api to push the code.
+    kaggle.kernels_push_cli(folder)
 
     # todo: split into commits and run sequentially.
 
@@ -234,7 +212,6 @@ def list_exp(*args, **kwargs):
         print(' ' + '-' * 98)
         i = 0
         for exp in orm.experiences.find({'project': str(project['_id'])}):
-
             i += 1
             steps = sum([c['steps'] for _, c in exp['cycles'].items()])
 

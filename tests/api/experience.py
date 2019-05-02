@@ -2,7 +2,7 @@ from unittest import TestCase
 from akk.api.experience import PyTorchExperience
 from torch import nn
 from torch import optim
-from akk.cli.experience import _is_exp_valid
+from akk.cli.experience import is_exp_valid
 from ..cli.samples import experience_dic, experience_dic_2, experience_dic_3, experience_dic_4, experience_dic_5, experience_dic_6, experience_dic_7, \
     experience_dic_8, experience_dic_9, experience_dic_10, experience_dic_11, experience_dic_12, experience_dic_13
 
@@ -68,12 +68,12 @@ class ExperienceTest(TestCase):
 
     def test_experience_validity(self):
         for i, valid_exp in enumerate([experience_dic, experience_dic_2, experience_dic_3]):
-            self.assertTrue(_is_exp_valid(valid_exp), "Experience #{} in list is not valid".format(i))
+            self.assertTrue(is_exp_valid(valid_exp), "Experience #{} in list is not valid".format(i))
 
         exps = [experience_dic_4, experience_dic_5, experience_dic_6, experience_dic_7, experience_dic_8, experience_dic_9, experience_dic_10, experience_dic_11,
                  experience_dic_12, experience_dic_13]
         for i, invalid_exp in enumerate(exps):
-            self.assertFalse(_is_exp_valid(invalid_exp), "Experience #{} in list is valid".format(i))
+            self.assertFalse(is_exp_valid(invalid_exp), "Experience #{} in list is valid".format(i))
 
     def test_lr_decay(self):
         pass

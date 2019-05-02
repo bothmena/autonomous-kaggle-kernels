@@ -3,10 +3,11 @@ import sys
 import importlib
 import inspect
 from akk.lib.exception import NoExperienceException, ManyExperiencesException
+from akk.lib.utils.helpers import is_exp_valid
 
 
 class CodeSourceImporter:
-    def __init__(self, main_fn: str, project_dir: str, output_dir: str, output_fn: str = 'output.py', mark_cells: bool = False):
+    def __init__(self, main_fn: str, project_dir: str, output_dir: str, output_fn: str = 'output.py', mark_cells: bool = True):
         """
         :param main_fn: main python file filename
         :param project_dir: where the main file is located.
@@ -137,16 +138,10 @@ class CodeSourceImporter:
             obj = eval('imp.' + parts[-1])
 
             if isinstance(obj, dict):
-                is_experience = True
-                for key in ['batch_size', 'epochs', 'lr', 'optimizer', 'loss']:
-                    if key not in obj.keys():
-                        is_experience = False
-                        break
-                if is_experience:
+                if is_exp_valid(obj):
                     experiences += 1
                     exp_name = parts[-1]
-                    continue
-
+                continue
             yield inspect.getsource(obj).strip()
 
         if experiences == 0:
@@ -157,28 +152,38 @@ class CodeSourceImporter:
         output_file.write('# __EXP__\n')
         output_file.write('# {} = ____\n\n'.format(exp_name))
 
-
     def write_output(self):
         with open(os.path.join(self.output_dir, self.output_fn), 'w') as output:
-            output.write('# __imp__\n')
+            output.write('#| # Importing all the necessary packages\n\n')
             for line in self.get_import_statements():
-                if self.mark_cells:
-                    output.write('# __cell__\n')
+                # if self.mark_cells:
+                #     output.write('# __cell__\n')
                 output.write(line + '\n')
             output.write('\n\n')
 
-            output.write('# __dec__\n')
+            output.write('#| # Definition of classes, functions and objects\n\n')
+            # output.write('# __dec__\n')
             for sc in self.get_ri_source_code(output):
                 if self.mark_cells:
-                    output.write('# __cell__\n')
+                    output.write('#-------------------------------\n\n')
                 output.write(sc + '\n\n\n')
 
-            output.write('# __mc__\n')
+            output.write('#| # Execution\n\n')
+            # output.write('# __mc__\n')
             with open(os.path.join(self.project_dir, self.main_fn), 'r') as f:
+                prev_space = 0
+                pprev_space = 0
+                ppprev_space = 0
                 for line in f.readlines():
                     if not line.startswith(('from ', 'import ')):
-                        line = line.rstrip()
-                        if len(line) == 0:
-                            output.write('\n# __cell__\n' if self.mark_cells else '\n')
+                        if line.strip() == '':
+                            ppprev_space = pprev_space
+                            pprev_space = prev_space
+                            prev_space = 1
                         else:
+                            ppprev_space = pprev_space
+                            pprev_space = prev_space
+                            prev_space = 0
+
+                        if prev_space * pprev_space * ppprev_space == 0:
                             output.write(line.rstrip() + '\n')

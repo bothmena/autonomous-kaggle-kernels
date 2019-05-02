@@ -11,7 +11,9 @@ orm = MongodbORM()
 
 
 # def new_project_handler(group=None, category=None, sort_by=None, page=1, search=None, csv_display=False):
-def init_project(name: str, path: str, repository: str, framework: str, cpu: bool, internet: bool):
+# todo: remove default values from function signature
+def init_project(name: str, path: str, repository: str, framework: str, cpu: bool, internet: bool, datasets: list = [], kernels: list = [], competitions: list = [],
+                 private: bool = True, k_type: str = 'notebook'):
     if path == '.':
         path = os.getcwd()
     if name is None:
@@ -28,12 +30,17 @@ def init_project(name: str, path: str, repository: str, framework: str, cpu: boo
             raise NoRepoException()
 
     project = {
-        'name'      : name,
-        'path'      : path,
-        'repository': repository,
-        'framework' : framework,
-        'cpu'       : cpu,
-        'internet'  : internet,
+        'name'        : name,
+        'path'        : path,
+        'repository'  : repository,
+        'framework'   : framework,
+        'cpu'         : cpu,
+        'internet'    : internet,
+        'datasets'    : datasets,
+        'kernels'     : kernels,
+        'competitions': competitions,
+        'private'     : private,
+        'type'        : k_type,
     }
 
     try:

@@ -1,3 +1,3 @@
-from .database import DataBaseException, ExperienceExistsException, ProjectExistsException
+from .database import DataBaseException, ExperienceExistsException, ProjectExistsException, CommitExistsException
 from .implementation import ManyExperiencesException, NoExperienceException, HPNotDefinedException, ImplementationException
 from .git import UncommitedChangesException, NoRepoException, GitException

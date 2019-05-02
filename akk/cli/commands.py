@@ -1,15 +1,6 @@
 #!/opt/conda/bin/python
 import argparse
-import sys
-import os
-if os.path.isdir('/home/bothmena/Projects/PyCharm/BrighterAI/autonomous-kaggle-kernels'):
-    sys.path.append('/home/bothmena/Projects/PyCharm/BrighterAI/autonomous-kaggle-kernels')
-elif os.path.isdir('/workspace/BrighterAI/autonomous-kaggle-kernels'):
-    sys.path.append('/workspace/BrighterAI/autonomous-kaggle-kernels')
 from akk.cli import experience, project, search_space
-
-
-# from . import project, experience, search_space
 
 
 def main():
