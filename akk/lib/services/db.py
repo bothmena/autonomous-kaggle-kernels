@@ -88,3 +88,9 @@ class MongodbORM(IDataBase):
         commit_id = self.commits.insert_one(commit).inserted_id
 
         return commit_id
+
+    def get_commit(self, commit_id: str):
+        return self.commits.find_one({"_id": ObjectId(commit_id)})
+
+    def get_exp_commit(self, exp_id):
+        return self.commits.find({'experience': ObjectId(exp_id)})
