@@ -10,10 +10,8 @@ from akk.lib.services import MongodbORM
 orm = MongodbORM()
 
 
-# def new_project_handler(group=None, category=None, sort_by=None, page=1, search=None, csv_display=False):
-# todo: remove default values from function signature
-def init_project(name: str, alias: str, path: str, repository: str, framework: str, cpu: bool, internet: bool, datasets: list = None, kernels: list = None,
-                 competitions: list = None, private: bool = True, k_type: str = 'notebook'):
+def init_project(name: str, alias: str, path: str, entrypoint: str, repository: str, framework: str, cpu: bool, internet: bool, datasets: list, kernels: list,
+                 competitions: list, public: bool, k_type: str):
     if path == '.':
         path = os.getcwd()
     if name is None:
@@ -37,17 +35,11 @@ def init_project(name: str, alias: str, path: str, repository: str, framework: s
         except InvalidGitRepositoryError:
             raise NoRepoException()
 
-    if competitions is None:
-        competitions = []
-    if datasets is None:
-        datasets = []
-    if kernels is None:
-        kernels = []
-
     project = {
         'name'        : name,
         'alias'       : alias,
         'path'        : path,
+        'entrypoint'  : entrypoint,
         'repository'  : repository,
         'framework'   : framework,
         'cpu'         : cpu,
@@ -55,7 +47,7 @@ def init_project(name: str, alias: str, path: str, repository: str, framework: s
         'datasets'    : datasets,
         'kernels'     : kernels,
         'competitions': competitions,
-        'private'     : private,
+        'private'     : not public,
         'type'        : k_type,
     }
 
