@@ -65,3 +65,9 @@ def is_exp_valid(exp: dict):
                 return False
 
     return True
+
+
+def project_not_found():
+    print('This directory is not a registered AKK project, please make sure you are issuing the cli from the right directory.')
+    print('If you did not initialize the project all you have to do is to run:')
+    print('$ akk project init [-h: for more information]')
