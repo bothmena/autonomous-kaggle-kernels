@@ -17,9 +17,15 @@ class ProjectInitTestSuite(TestCase):
         'alias': None,
         'path': None,
         'repository': None,
-        'framework': None,
-        'cpu': None,
-        'internet': None,
+        'framework': 'pytorch',
+        'cpu': False,
+        'internet': False,
+        'entrypoint': 'main.py',
+        'datasets': [],
+        'kernels': [],
+        'competitions': [],
+        'public': False,
+        'k_type': 'notebook',
     }
 
     def test_project_name_length(self):
