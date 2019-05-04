@@ -1,6 +1,7 @@
 #!/opt/conda/bin/python
 import argparse
-from akk.cli import experience, project, search_space
+
+from akk.cli import experience, project, search_space, clean
 
 
 def main():
@@ -15,6 +16,17 @@ def main():
     parse_project(subparsers)
     parse_experience(subparsers)
     parse_search_space(subparsers)
+
+    clean_parser = subparsers.add_parser(name='clean', formatter_class=argparse.RawTextHelpFormatter, help=Help.clean)
+    clean_parser_opt = clean_parser._action_groups.pop()
+
+    for kwargs in Help.project_clean_args:
+        args = kwargs['args']
+        del kwargs['args']
+        clean_parser_opt.add_argument(*args, **kwargs)
+
+    clean_parser._action_groups.append(clean_parser_opt)
+    clean_parser.set_defaults(func=clean.clean_db)
 
     args = parser.parse_args()
     command_args = {}
@@ -205,7 +217,7 @@ def parse_search_space(subparsers):
 
 
 class Help:
-    akk_choices = ['project', 'p', 'experience', 'e', 'search-space', 'ss']
+    akk_choices = ['project', 'p', 'experience', 'e', 'search-space', 'ss', 'clean']
     project_choices = ['init', 'status', 'update', 'list']
     exp_choices = ['new', 'status', 'start', 'stop', 'list']
     ss_choices = ['expand', 'list', 'run']
@@ -228,6 +240,8 @@ class Help:
     ss_expand = 'Expand a search space into experiences'
     ss_list = 'List project\'s search spaces, and search space\'s experiences'
 
+    clean = 'Clean your database, remove all entry given the level. Use carefully!'
+
     project_init_args = [
         {
             'args': ['-n', '--name'],
@@ -235,21 +249,21 @@ class Help:
             'help': 'Name of the new project, it should be unique and less than 50 and longer than 5 characters, default: first 50 characters of the name of the directory',
         },
         {
-            'args': ['-a', '--alias'],
-            'dest': 'alias',
+            'args'   : ['-a', '--alias'],
+            'dest'   : 'alias',
             'default': None,
-            'help': 'Alias of the new project, it should be less than 25 characters, default: first 25 characters of project name',
+            'help'   : 'Alias of the new project, it should be less than 25 characters, default: first 25 characters of project name',
         },
         {
-            'args': ['-p', '--path'],
-            'dest': 'path',
-            'help': 'Absolute path of the directory containing the project, default working directory',
+            'args'   : ['-p', '--path'],
+            'dest'   : 'path',
+            'help'   : 'Absolute path of the directory containing the project, default working directory',
             'default': '.',
         },
         {
-            'args': ['-e', '--entrypoint'],
-            'dest': 'entrypoint',
-            'help': 'Entrypoint file, aka main file, default main.py',
+            'args'   : ['-e', '--entrypoint'],
+            'dest'   : 'entrypoint',
+            'help'   : 'Entrypoint file, aka main file, default main.py',
             'default': 'main.py',
         },
         {
@@ -258,91 +272,89 @@ class Help:
             'help': 'Url of the repository where the project is stored',
         },
         {
-            'args': ['--framework'],
-            'dest': 'framework',
+            'args'   : ['--framework'],
+            'dest'   : 'framework',
             'default': 'pytorch',
             'choices': ['pytorch', 'tensorflow', 'keras'],
-            'help': 'Deep Learning framework in use, choose from pytorch/tensorflow/keras, default pytorch',
+            'help'   : 'Deep Learning framework in use, choose from pytorch/tensorflow/keras, default pytorch',
         },
         {
-            'args': ['--cpu'],
-            'dest': 'cpu',
-            'help': 'Use cpu for training instead of GPU, default: False',
+            'args'  : ['--cpu'],
+            'dest'  : 'cpu',
+            'help'  : 'Use cpu for training instead of GPU, default: False',
             'action': 'store_true',
         },
         {
-            'args': ['--internet'],
-            'dest': 'internet',
-            'help': 'Enable the internet access for the kernel, default: False',
+            'args'  : ['--internet'],
+            'dest'  : 'internet',
+            'help'  : 'Enable the internet access for the kernel, default: False',
             'action': 'store_true',
         },
         {
-            'args': ['--public'],
-            'dest': 'public',
-            'help': 'Make the kernel public, default: False (private)',
+            'args'  : ['--public'],
+            'dest'  : 'public',
+            'help'  : 'Make the kernel public, default: False (private)',
             'action': 'store_true',
         },
         {
-            'args': ['-t', '--type'],
-            'dest': 'k_type',
+            'args'   : ['-t', '--type'],
+            'dest'   : 'k_type',
             'default': 'notebook',
             'choices': ['notebook', 'script'],
-            'help': 'Select the kernel type: notebook or script, default notebook',
+            'help'   : 'Select the kernel type: notebook or script, default notebook',
         },
         {
-            'args': ['-d', '--datasets'],
-            'dest': 'datasets',
-            'nargs': '*',
+            'args'   : ['-d', '--datasets'],
+            'dest'   : 'datasets',
+            'nargs'  : '*',
             'default': [],
-            'help': 'Add kernel data sources from kaggle datasets, you add multiple data sources separated by a space.',
+            'help'   : 'Add kernel data sources from kaggle datasets, you add multiple data sources separated by a space.',
         },
         {
-            'args': ['-c', '--competitions'],
-            'dest': 'competitions',
-            'nargs': '*',
+            'args'   : ['-c', '--competitions'],
+            'dest'   : 'competitions',
+            'nargs'  : '*',
             'default': [],
-            'help': 'Add kernel data sources from kaggle competitions, you add multiple data sources separated by a space.',
+            'help'   : 'Add kernel data sources from kaggle competitions, you add multiple data sources separated by a space.',
         },
         {
-            'args': ['-k', '--kernels'],
-            'dest': 'datasets',
-            'nargs': '*',
+            'args'   : ['-k', '--kernels'],
+            'dest'   : 'kernels',
+            'nargs'  : '*',
             'default': [],
-            'help': 'Add kernel data sources from kaggle kernel outputs, you add multiple data sources separated by a space.',
+            'help'   : 'Add kernel data sources from kaggle kernel outputs, you add multiple data sources separated by a space.',
         },
     ]
     project_status_args = [
         {
-            'args': ['-n', '--name'],
-            'dest': 'name',
+            'args'    : ['-n', '--name'],
+            'dest'    : 'name',
             'required': False,
-            'help': 'Name of the new project, it should be unique, default: name of the directory',
+            'help'    : 'Name of the new project, it should be unique, default: name of the directory',
         },
     ]
     project_update_args = [
         {
-            'args': ['-n', '--name'],
-            'dest': 'name',
+            'args'    : ['-n', '--name'],
+            'dest'    : 'name',
             'required': False,
-            'help': 'Name of the new project, it should be unique, default: name of the directory',
+            'help'    : 'Name of the new project, it should be unique, default: name of the directory',
         },
     ]
     project_list_args = []
 
     exp_new_args = [
         {
-            'args': ['-f', '--filename'],
-            'dest': 'filename',
+            'args'    : ['-f', '--filename'],
+            'dest'    : 'filename',
             'required': True,
-            'help': 'Path to the file where the experience dictionary is defined.',
+            'help'    : 'Path to the file where the experience dictionary is defined.',
         },
     ]
     exp_status_args = [
         {
-            'args': ['-n', '--name'],
-            'dest': 'name',
-            'required': False,
-            'help': 'Name of the new project, it should be unique, default: name of the directory',
+            'args': ['experience'],
+            'help': 'Experience id',
         },
     ]
     exp_start_args = [
@@ -353,43 +365,55 @@ class Help:
     ]
     exp_stop_args = [
         {
-            'args': ['-n', '--name'],
-            'dest': 'name',
+            'args'    : ['-n', '--name'],
+            'dest'    : 'name',
             'required': False,
-            'help': 'Name of the new project, it should be unique, default: name of the directory',
+            'help'    : 'Name of the new project, it should be unique, default: name of the directory',
         },
     ]
     exp_list_args = [
         {
-            'args': ['-n', '--name'],
-            'dest': 'name',
+            'args'    : ['-n', '--name'],
+            'dest'    : 'name',
             'required': False,
-            'help': 'Name of the new project, it should be unique, default: name of the directory',
+            'help'    : 'Name of the new project, it should be unique, default: name of the directory',
         },
     ]
 
     ss_expand_args = [
         {
-            'args': ['-n', '--name'],
-            'dest': 'name',
+            'args'    : ['-n', '--name'],
+            'dest'    : 'name',
             'required': False,
-            'help': 'Name of the new project, it should be unique, default: name of the directory',
+            'help'    : 'Name of the new project, it should be unique, default: name of the directory',
         },
     ]
     ss_list_args = [
         {
-            'args': ['-n', '--name'],
-            'dest': 'name',
+            'args'    : ['-n', '--name'],
+            'dest'    : 'name',
             'required': False,
-            'help': 'Name of the new project, it should be unique, default: name of the directory',
+            'help'    : 'Name of the new project, it should be unique, default: name of the directory',
         },
     ]
     ss_run_args = [
         {
-            'args': ['-n', '--name'],
-            'dest': 'name',
+            'args'    : ['-n', '--name'],
+            'dest'    : 'name',
             'required': False,
-            'help': 'Name of the new project, it should be unique, default: name of the directory',
+            'help'    : 'Name of the new project, it should be unique, default: name of the directory',
+        },
+    ]
+
+    project_clean_args = [
+        {
+            'args'    : ['-l', '--level'],
+            'dest'    : 'level',
+            'required': False,
+            'default' : 0,
+            'type'    : int,
+            'help'    : 'level of cleaning:\n   0: do nothing\n   1: clean commits\n   2: clean experiences + level 1\n   3: clean search spaces + level 2\n   '
+                        '4: clean projects + level 3',
         },
     ]
 
