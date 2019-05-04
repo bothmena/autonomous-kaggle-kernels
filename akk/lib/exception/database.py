@@ -19,6 +19,13 @@ class ExperienceExistsException(DataBaseException):
         self.status = status
 
 
+class ExperienceNotFoundException(DataBaseException):
+    def __init__(self, message='The experience does not exist in the database', status=None):
+        super(ExperienceNotFoundException, self).__init__(message, status)
+        self.message = message
+        self.status = status
+
+
 class CommitExistsException(DataBaseException):
     def __init__(self, message='Same commit for the same experience already exists', status=None):
         super(CommitExistsException, self).__init__(message, status)
