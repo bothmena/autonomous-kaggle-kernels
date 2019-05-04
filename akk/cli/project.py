@@ -12,12 +12,20 @@ orm = MongodbORM()
 
 # def new_project_handler(group=None, category=None, sort_by=None, page=1, search=None, csv_display=False):
 # todo: remove default values from function signature
-def init_project(name: str, path: str, repository: str, framework: str, cpu: bool, internet: bool, datasets: list = [], kernels: list = [], competitions: list = [],
-                 private: bool = True, k_type: str = 'notebook'):
+def init_project(name: str, alias: str, path: str, repository: str, framework: str, cpu: bool, internet: bool, datasets: list = None, kernels: list = None,
+                 competitions: list = None, private: bool = True, k_type: str = 'notebook'):
     if path == '.':
         path = os.getcwd()
     if name is None:
-        name = os.path.basename(path)
+        name = os.path.basename(path)[:50]
+    elif len(name) < 5:
+        raise ValueError('Project name should at least 5 characters long.')
+    elif len(name) > 50:
+        raise ValueError('Project name should be 50 characters long or less.')
+    if alias is None:
+        alias = name[:25]
+    elif len(alias) > 25:
+        raise ValueError('Project alias should be 50 characters long or less.')
     if repository is None:
         try:
             repo = Repo(path)
@@ -29,8 +37,16 @@ def init_project(name: str, path: str, repository: str, framework: str, cpu: boo
         except InvalidGitRepositoryError:
             raise NoRepoException()
 
+    if competitions is None:
+        competitions = []
+    if datasets is None:
+        datasets = []
+    if kernels is None:
+        kernels = []
+
     project = {
         'name'        : name,
+        'alias'       : alias,
         'path'        : path,
         'repository'  : repository,
         'framework'   : framework,
@@ -49,8 +65,9 @@ def init_project(name: str, path: str, repository: str, framework: str, cpu: boo
         print(
             'Could not create a new project, a project already exists with the same name and/or path. Please make sure you use a unique name for your project to be able to '
             'identify them on kaggle')
-    # todo create the config file if necessary.
-    os.mkdir(os.path.join(path, '.akk'), 0o755)
+
+    if not os.path.isdir(os.path.join(path, '.akk')):
+        os.mkdir(os.path.join(path, '.akk'), 0o755)
 
 
 def status_project(*args, **kwargs):

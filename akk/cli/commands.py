@@ -233,13 +233,20 @@ class Help:
             'args': ['-n', '--name'],
             'dest': 'name',
             'required': False,
-            'help': 'Name of the new project, it should be unique, default: name of the directory',
+            'help': 'Name of the new project, it should be unique and less than 50 and longer than 5 characters, default: first 50 characters of the name of the directory',
+        },
+        {
+            'args': ['-a', '--alias'],
+            'dest': 'alias',
+            'required': False,
+            'default': None,
+            'help': 'Alias of the new project, it should be less than 25 characters, default: first 25 characters of project name',
         },
         {
             'args': ['-p', '--path'],
             'dest': 'path',
             'required': False,
-            'help': 'Path of the directory containing the project, default working directory',
+            'help': 'Absolute path of the directory containing the project, default working directory',
             'default': '.',
         },
         {
