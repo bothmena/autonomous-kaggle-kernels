@@ -69,6 +69,18 @@ def parse_project(subparsers):
     parser_project_init._action_groups.append(parser_project_init_opt)
     parser_project_init.set_defaults(func=project.init_project)
 
+    # project assemble
+    parser_project_assemble = subparsers_project.add_parser('assemble', formatter_class=argparse.RawTextHelpFormatter, help=Help.project_assemble)
+    parser_project_assemble_opt = parser_project_assemble._action_groups.pop()
+
+    for kwargs in Help.project_assemble_args:
+        args = kwargs['args']
+        del kwargs['args']
+        parser_project_assemble_opt.add_argument(*args, **kwargs)
+
+    parser_project_assemble._action_groups.append(parser_project_assemble_opt)
+    parser_project_assemble.set_defaults(func=project.assemble_project)
+
     # project status
     parser_project_status = subparsers_project.add_parser('status', formatter_class=argparse.RawTextHelpFormatter, help=Help.project_status)
     parser_project_status_opt = parser_project_status._action_groups.pop()
@@ -218,12 +230,13 @@ def parse_search_space(subparsers):
 
 class Help:
     akk_choices = ['project', 'p', 'experience', 'e', 'search-space', 'ss', 'clean']
-    project_choices = ['init', 'status', 'update', 'list']
+    project_choices = ['init', 'assemble', 'status', 'update', 'list']
     exp_choices = ['new', 'status', 'start', 'stop', 'list']
     ss_choices = ['expand', 'list', 'run']
 
     project = 'Manage your projects'
     project_init = 'Initiate a new project'
+    project_assemble = 'Assemble project code source in a single file'
     project_status = 'Check the status of the project'
     project_update = 'Update project info and settings'
     project_list = 'List all the projects'
@@ -333,6 +346,7 @@ class Help:
             'help'    : 'Name of the new project, it should be unique, default: name of the directory',
         },
     ]
+    project_assemble_args = []
     project_update_args = [
         {
             'args'    : ['-n', '--name'],

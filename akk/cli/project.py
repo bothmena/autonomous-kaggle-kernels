@@ -3,8 +3,10 @@ import os
 from git import Repo
 from git.exc import InvalidGitRepositoryError
 
-from akk.lib.exception import ProjectExistsException, NoRepoException
+from akk.lib.exception import ProjectExistsException, NoRepoException, UncommitedChangesException
 from akk.lib.services import MongodbORM
+from akk.lib.utils.helpers import project_not_found, get_project_last_commit
+from akk.lib.utils import CodeSourceImporter
 
 
 orm = MongodbORM()
@@ -60,6 +62,34 @@ def init_project(name: str, alias: str, path: str, entrypoint: str, repository: 
 
     if not os.path.isdir(os.path.join(path, '.akk')):
         os.mkdir(os.path.join(path, '.akk'), 0o755)
+
+
+def _assemble_code(project, output_dir):
+    importer = CodeSourceImporter(project['entrypoint'], project['path'], output_dir)
+    importer.find_file_deps()
+    importer.write_output()
+
+
+def assemble_project():
+    # get project
+    path = os.getcwd()
+    project = orm.get_project(path)
+    if project is None:
+        project_not_found()
+        return
+
+    try:
+        # check project last commit, else warning
+        last_commit = get_project_last_commit(path)
+        if last_commit is None:
+            raise UncommitedChangesException()
+    except InvalidGitRepositoryError:
+        raise NoRepoException()
+
+    if not os.path.isdir(os.path.join(project['path'], '.akk', last_commit)):
+        os.mkdir(os.path.join(project['path'], '.akk', last_commit))
+
+    _assemble_code(project, os.path.join(path, '.akk', last_commit))
 
 
 def status_project(*args, **kwargs):
