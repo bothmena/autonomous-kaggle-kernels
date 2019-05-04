@@ -19,6 +19,13 @@ class ManyExperiencesException(ImplementationException):
         self.status = status
 
 
+class ProjectNotAssembledException(ImplementationException):
+    def __init__(self, message: str = 'You must assemble all the files before starting an experiment, run:\n $ akk project assemble.', status=None):
+        super(ProjectNotAssembledException, self).__init__(message, status)
+        self.message = message
+        self.status = status
+
+
 class HPNotDefinedException(ImplementationException):
     def __init__(self, message: str = 'A Hyper parameter is not defined in the experience', status=None, hp: str = None, net_id: str = None):
         if hp is not None:
