@@ -4,4 +4,7 @@ from kaggle.api_client import ApiClient
 
 
 kaggle = KaggleApi(ApiClient())
-kaggle.authenticate()
+try:
+    kaggle.authenticate()
+except OSError:
+    pass
