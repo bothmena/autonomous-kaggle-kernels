@@ -72,10 +72,9 @@ class MongodbORM(IDataBase):
         commit_cp = commit.copy()
         del commit_cp['cycles']
 
-        if self.commits.find_one(commit_cp) is not None:
-            return
-        # if self.commits.find_one(commit_cp) is not None:
-        #     raise CommitExistsException()
+        commit_db = self.commits.find_one(commit_cp)
+        if commit_db is not None:
+            return commit_db['_id']
 
         commit['date'] = datetime.utcnow()
         # status: unstarted|running|completed|failed|queued
