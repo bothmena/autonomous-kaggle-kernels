@@ -101,7 +101,7 @@ def start_exp(exp_id, *args, **kwargs):
         return
 
     # get experience with id and project id.
-    experience = orm.get_experience(exp_id, str(project['_id']))
+    experience = orm.get_experience(exp_id, project['_id'])
     if experience is None:
         print('This project has no experience with id:', exp_id)
         return
@@ -169,7 +169,7 @@ def list_exp(*args, **kwargs):
         print(' | {:3s} | {:24s} | {:10s} | {:14s} | {:14s} | {:14s} |'.format('#', 'Id', 'Git Commit', 'Batch Size', 'Cycles', 'Networks'))
         print(' ' + '-' * 98)
         i = 0
-        for exp in orm.experiences.find({'project': str(project['_id'])}):
+        for exp in orm.experiences.find({'project': project['_id']}):
             i += 1
             steps = sum([c['steps'] for _, c in exp['cycles'].items()])
 

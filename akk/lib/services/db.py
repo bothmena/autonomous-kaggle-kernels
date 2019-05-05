@@ -60,7 +60,7 @@ class MongodbORM(IDataBase):
 
         return experience_id
 
-    def get_experience(self, exp_id: str, project_id: str = None):
+    def get_experience(self, exp_id: str, project_id: ObjectId = None):
         """
         :param exp_id: the first 10 characters of the experience ObjectId
         :param project_id: experience's project id
