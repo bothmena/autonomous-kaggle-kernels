@@ -12,6 +12,13 @@ class ProjectExistsException(DataBaseException):
         self.status = status
 
 
+class ProjectNotFoundException(DataBaseException):
+    def __init__(self, message='The project does not exist in the database', status=None):
+        super(ProjectNotFoundException, self).__init__(message, status)
+        self.message = message
+        self.status = status
+
+
 class ExperienceExistsException(DataBaseException):
     def __init__(self, message='Same experience for the same project already exists', status=None):
         super(ExperienceExistsException, self).__init__(message, status)
