@@ -16,7 +16,9 @@ setuptools.setup(
     install_requires=[
         'gitpython >= 2.1.*',
         'python-slugify',
-        'kaggle'
+        'kaggle',
+        'requests',
+        'lxml'
     ],
     classifiers=[
         "Programming Language :: Python :: 3",
