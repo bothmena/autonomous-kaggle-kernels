@@ -3,21 +3,15 @@ import os
 
 from git.exc import InvalidGitRepositoryError
 from kaggle.api.kaggle_api_extended import KaggleApi
-from kaggle.api_client import ApiClient
-from slugify import slugify
-from bson import ObjectId
 
 from akk.lib.exception import NoRepoException, UncommitedChangesException, ExperienceExistsException, \
     ExperienceNotFoundException, ProjectNotAssembledException
 from akk.lib.services import MongodbORM
-from akk.lib.utils import py2nb
+from akk.lib.utils import py2nb, kaggle
 from akk.lib.utils.helpers import get_experiences, get_project_last_commit, is_exp_valid, project_not_found
 
 
 orm = MongodbORM()
-
-kaggle = KaggleApi(ApiClient())
-kaggle.authenticate()
 
 
 def _write_exp_data(experience, path, last_commit):
@@ -46,10 +40,9 @@ def _write_exp_data(experience, path, last_commit):
 
 
 def _kernel_metadata(project: dict, experience: dict):
-    name = project['alias'] + ' ' + str(experience['_id'])
     meta_data = {
-        'id'                 : 'bothmena/' + slugify(name),
-        'title'              : name,
+        'id'                 : experience['kernel_id'],
+        'title'              : experience['kernel_name'],
         'code_file'          : 'script.ipynb',
         'language'           : 'python',
         'kernel_type'        : project['type'],
@@ -58,7 +51,7 @@ def _kernel_metadata(project: dict, experience: dict):
         'enable_internet'    : 'true' if project['internet'] else 'false',
         'dataset_sources'    : project['datasets'],
         'competition_sources': project['competitions'],
-        'kernel_sources'     : ["bothmena/" + slugify(name)] + project['kernels']
+        'kernel_sources'     : [experience['kernel_id']] + project['kernels']
     }
     meta_file = os.path.join(os.path.join(project['path'], '.akk', experience['git_commit'], 'experiences', str(experience['_id']), KaggleApi.KERNEL_METADATA_FILE))
     with open(meta_file, 'w') as f:
@@ -85,7 +78,7 @@ def new_exp(filename: str):
                 except InvalidGitRepositoryError:
                     raise NoRepoException()
 
-                experience['project'] = str(project['_id'])
+                experience['project'] = project['_id']
                 experience['git_commit'] = last_commit
                 experience['search_space'] = None
                 experience['status'] = 'unstarted'  # profiling / running / stopped / completed / failed / queued (when using search space and set limit of parallel experiences)

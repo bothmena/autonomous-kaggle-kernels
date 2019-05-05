@@ -2,8 +2,11 @@ from datetime import datetime
 
 from bson import ObjectId
 from pymongo import MongoClient
+from slugify import slugify
+from akk.lib.utils import kaggle
 
-from akk.lib.exception import ProjectExistsException, ExperienceExistsException, CommitExistsException
+from akk.lib.exception import ProjectExistsException, ExperienceExistsException, \
+    ProjectNotFoundException
 from akk.lib.services.idb import IDataBase
 
 
@@ -42,8 +45,18 @@ class MongodbORM(IDataBase):
         if exp_db is not None:
             raise ExperienceExistsException()
 
+        project = self.projects.find_one({'_id': experience['project']})
+        if project is None:
+            raise ProjectNotFoundException()
+
         experience['date'] = datetime.utcnow()
         experience_id = self.experiences.insert_one(experience).inserted_id
+        experience = self.experiences.find_one({'_id': experience_id})
+
+        name = project['alias'] + ' ' + str(experience['_id'])
+        kernel_id = kaggle.get_config_value(kaggle.CONFIG_NAME_USER) + '/' + slugify(name)
+
+        self.experiences.update_one({'_id': experience_id}, {'$set': {'kernel_id': kernel_id, 'kernel_name': name}})
 
         return experience_id
 
