@@ -17,6 +17,8 @@ setuptools.setup(
         'gitpython >= 2.1.*',
         'python-slugify',
         'kaggle',
+        'numpy',
+        'selenium',
         'requests',
         'lxml'
     ],
