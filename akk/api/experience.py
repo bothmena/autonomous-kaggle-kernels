@@ -147,6 +147,12 @@ class PyTorchExperience(Experience):
             return nn.CrossEntropyLoss(**self.loss_args(net_id))
         elif loss == 'smooth_l1':
             return nn.SmoothL1Loss(**self.loss_args(net_id))
+        elif loss == 'l1loss':
+            return nn.L1Loss(**self.loss_args(net_id))
+        elif loss == 'nll':
+            return nn.NLLLoss(**self.loss_args(net_id))
+        elif loss == 'kl_div':
+            return nn.KLDivLoss(**self.loss_args(net_id))
         elif loss == 'custom':
             return None
         else:
