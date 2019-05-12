@@ -136,6 +136,8 @@ class PyTorchExperience(Experience):
             return optim.Adam(parameters, lr=self.get_lr(net_id), **self.opt_args(net_id))
         elif opt == 'rmsprop':
             return optim.RMSprop(parameters, lr=self.get_lr(net_id), **self.opt_args(net_id))
+        elif opt == 'sgd':
+            return optim.SGD(parameters, lr=self.get_lr(net_id), **self.opt_args(net_id))
         else:
             raise NotImplementedError('This optimizer is not yet implemented')
 
