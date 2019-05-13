@@ -11,5 +11,9 @@ class Saver:
         np.save(filename, data)
 
     @classmethod
-    def save_net_state_dict(cls, net: Module):
-        torch.save(net.state_dict(), net.net_id + '.pt')
+    def save_net_state_dict(cls, net: Module, cycle_id: str = None):
+        if cycle_id:
+            filename = '{}_{}.pt'.format(cycle_id, net.net_id)
+        else:
+            filename = net.net_id + '.pt'
+        torch.save(net.state_dict(), filename)
