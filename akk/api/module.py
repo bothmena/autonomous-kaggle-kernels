@@ -1,8 +1,8 @@
 from abc import ABCMeta, abstractmethod
-import torch
+from torch import nn
 
 
-class Module(torch.nn.Module, metaclass=ABCMeta):
+class Module(nn.Module, metaclass=ABCMeta):
 
     n_modules = 0
 
@@ -15,5 +15,5 @@ class Module(torch.nn.Module, metaclass=ABCMeta):
         Module.n_modules += 1
 
     @abstractmethod
-    def pre_training(self, *args, **kwargs):
-        """"""
+    def forward(self, *input):
+        """required method"""
