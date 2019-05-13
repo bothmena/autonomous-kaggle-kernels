@@ -154,6 +154,8 @@ class CodeSourceImporter:
 
     def write_output(self):
         with open(os.path.join(self.output_dir, self.output_fn), 'w') as output:
+            output.write('#| # Installing AKK library\n\n')
+            output.write('!pip install git+https://github.com/bothmena/autonomous-kaggle-kernels\n\n')
             output.write('#| # Importing all the necessary packages\n\n')
             for line in self.get_import_statements():
                 # if self.mark_cells:
