@@ -19,7 +19,6 @@ def save_net_state_dict(net: Module, cycle_id: str = None, dir_path: str = ''):
     else:
         filename = net.net_id + '.pt'
 
-    print(filename, os.path.join(dir_path, filename))
     path = os.path.join(dir_path, filename)
     torch.save(net.state_dict(), path)
 
